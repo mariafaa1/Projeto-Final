@@ -15,3 +15,5 @@ def load_assets():
     assets['fonte_padrao'] = pygame.font.SysFont('arial', 30)
 
     return assets
+
+#resina obrigado
