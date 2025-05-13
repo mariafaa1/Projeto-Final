@@ -8,7 +8,7 @@ def carregar_recursos():
     recursos['jogador2'] = pygame.image.load('assets/player2.png').convert_alpha()
     recursos['bala'] = pygame.image.load('assets/bullet.png').convert_alpha()
     coracao = pygame.image.load('assets/coracao.png').convert_alpha()
-    recursos['coracao'] = pygame.transform.scale(coracao, (34, 18))
+    recursos['coracao'] = pygame.transform.scale(coracao, (24, 12))
 
 
     # Sons
