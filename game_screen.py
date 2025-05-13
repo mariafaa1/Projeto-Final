@@ -1,49 +1,36 @@
 import pygame
-from sprites import Player, Bullet
-from config import FPS, WIDTH, HEIGHT, DARK_GRAY
+from sprites import Jogador, Bala
+from config import FPS, LARGURA, ALTURA, CINZA_ESCURO
 
-def game_screen(window, assets):
-    clock = pygame.time.Clock()
-    running = True
+def tela_jogo(janela, recursos):
+    relogio = pygame.time.Clock()
+    executando = True
 
-    all_sprites = pygame.sprite.Group()
-    bullets = pygame.sprite.Group()
+    todos_sprites = pygame.sprite.Group()
+    balas = pygame.sprite.Group()
 
-    # Define controles para os dois jogadores
-    controls1 = {
-        'up': pygame.K_w,
-        'down': pygame.K_s,
-        'left': pygame.K_a,
-        'right': pygame.K_d,
-        'shoot': pygame.K_SPACE
-    }
+    # Teclas dos jogadores
+    controles1 = {'cima': pygame.K_w, 'baixo': pygame.K_s, 'esquerda': pygame.K_a, 'direita': pygame.K_d, 'atirar': pygame.K_SPACE}
+    controles2 = {'cima': pygame.K_UP, 'baixo': pygame.K_DOWN, 'esquerda': pygame.K_LEFT, 'direita': pygame.K_RIGHT, 'atirar': pygame.K_RSHIFT}
 
-    controls2 = {
-        'up': pygame.K_UP,
-        'down': pygame.K_DOWN,
-        'left': pygame.K_LEFT,
-        'right': pygame.K_RIGHT,
-        'shoot': pygame.K_RSHIFT
-    }
+    # Criar jogadores
+    jogador1 = Jogador(recursos['jogador1'], LARGURA // 4, ALTURA - 60, controles1, recursos)
+    jogador2 = Jogador(recursos['jogador2'], LARGURA * 3 // 4, 60, controles2, recursos)
 
-    # Cria jogadores
-    player1 = Player(assets['player1'], WIDTH // 4, HEIGHT - 60, controls1, assets)
-    player2 = Player(assets['player2'], WIDTH * 3 // 4, 60, controls2, assets)
+    todos_sprites.add(jogador1, jogador2)
 
-    all_sprites.add(player1, player2)
+    while executando:
+        relogio.tick(FPS)
 
-    while running:
-        clock.tick(FPS)
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                executando = False
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+        teclas = pygame.key.get_pressed()
+        jogador1.atualizar(teclas, balas, todos_sprites)
+        jogador2.atualizar(teclas, balas, todos_sprites)
+        balas.update()
 
-        keys = pygame.key.get_pressed()
-        player1.update(keys, bullets, all_sprites)
-        player2.update(keys, bullets, all_sprites)
-        bullets.update()
-
-        window.fill(DARK_GRAY)
-        all_sprites.draw(window)
+        janela.fill(CINZA_ESCURO)
+        todos_sprites.draw(janela)
         pygame.display.flip()

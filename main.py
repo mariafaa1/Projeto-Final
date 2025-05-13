@@ -1,18 +1,18 @@
 import pygame
-from assets import load_assets
-from game_screen import game_screen
-from config import WIDTH, HEIGHT
+from assets import carregar_recursos
+from game_screen import tela_jogo
+from config import LARGURA, ALTURA
 
 pygame.init()
 
-# Configurações iniciais da janela
-window = pygame.display.set_mode((WIDTH, HEIGHT))
+# Criar a janela
+janela = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Duelos Pixelados: Arena 3x")
 
-# Carrega os assets (imagens, sons, fontes)
-assets = load_assets()
+# Carregar imagens, sons e fontes
+recursos = carregar_recursos()
 
-# Executa a tela principal do jogo
-game_screen(window, assets)
+# Executar o jogo
+tela_jogo(janela, recursos)
 
 pygame.quit()
