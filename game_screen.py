@@ -84,5 +84,10 @@ def tela_jogo(janela, recursos):
 
         janela.fill(CINZA_ESCURO)
         desenhar_vidas(janela, recursos, jogador1, jogador2)
+
+        # --- Exibe texto "Menu (P)" no canto superior direito ---
+        texto_menu = recursos['fonte_padrao'].render("Menu (P)", True, (255, 255, 255))
+        janela.blit(texto_menu, (LARGURA - texto_menu.get_width() - 10, 10))
+
         todos_sprites.draw(janela)
         pygame.display.flip()
