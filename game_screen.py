@@ -28,6 +28,10 @@ def desenhar_menu_pausa(janela, fonte):
     janela.blit(continuar, (LARGURA//2 - continuar.get_width()//2, 130))
     janela.blit(reiniciar, (LARGURA//2 - reiniciar.get_width()//2, 170))
 
+def desenhar_menu_texto(janela, fonte):
+    texto_menu = fonte.render("Menu (P)", True, (255, 255, 0))
+    janela.blit(texto_menu, (LARGURA - texto_menu.get_width() - 30, 30))
+
 def tela_jogo(janela, recursos):
     clock = pygame.time.Clock()
     pausado = False
@@ -107,4 +111,5 @@ def tela_jogo(janela, recursos):
         janela.fill(CINZA_ESCURO)
         todos_sprites.draw(janela)
         desenhar_vidas(janela, recursos, jogador1, jogador2)
+        desenhar_menu_texto(janela, recursos['fonte_padrao'])
         pygame.display.flip()
