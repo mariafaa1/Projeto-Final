@@ -1,14 +1,14 @@
-
 import pygame
 from sprites import Jogador, Projetil
 from config import FPS, LARGURA, ALTURA, CINZA_ESCURO
 
-def desenhar_vidas(janela, recursos, jogador1, jogador2):
+def desenhar_vidas(janela, recursos, jogador):
     imagem_coracao = recursos['coracao']
-    for i in range(jogador1.vidas):
-        janela.blit(imagem_coracao, (10 + i * 40, ALTURA - 40))
-    for i in range(jogador2.vidas):
-        janela.blit(imagem_coracao, (10 + i * 40, 10))
+    espacamento = 22
+    for i in range(jogador.vidas):
+        pos_x = jogador.rect.centerx - (jogador.vidas * espacamento // 2) + i * espacamento
+        pos_y = jogador.rect.top - 28
+        janela.blit(imagem_coracao, (pos_x, pos_y))
 
 def tela_jogo(janela, recursos):
     relogio = pygame.time.Clock()
@@ -37,7 +37,7 @@ def tela_jogo(janela, recursos):
         jogador2.atualizar(teclas, projeteis, todos_sprites)
         projeteis.update()
 
-        # Checar colisões
+        # Colisões
         for projetil in projeteis:
             if projetil.jogador_origem != jogador1 and projetil.rect.colliderect(jogador1.rect):
                 jogador1.perder_vida()
@@ -47,6 +47,7 @@ def tela_jogo(janela, recursos):
                 projetil.kill()
 
         janela.fill(CINZA_ESCURO)
-        desenhar_vidas(janela, recursos, jogador1, jogador2)
         todos_sprites.draw(janela)
+        desenhar_vidas(janela, recursos, jogador1)
+        desenhar_vidas(janela, recursos, jogador2)
         pygame.display.flip()
