@@ -78,12 +78,12 @@ def tela_jogo(janela, recursos):
                         return
                 # Lançar granada
                 if evento.key == jogador1.controles['granada'] and jogador1.tem_granada:
-                    g = GranadaLançada(jogador2.rect.centerx, jogador2.rect.centery, recursos, jogador2)
+                    g = GranadaLançada(jogador2.rect.centerx, jogador2.rect.centery, recursos['granada'], recursos['explosao'], jogador2)
                     explosoes.add(g)
                     todos_sprites.add(g)
                     jogador1.tem_granada = False
                 if evento.key == jogador2.controles['granada'] and jogador2.tem_granada:
-                    g = GranadaLançada(jogador1.rect.centerx, jogador1.rect.centery, recursos, jogador1)
+                    g = GranadaLançada(jogador1.rect.centerx, jogador1.rect.centery, recursos['granada'], recursos['explosao'], jogador1)
                     explosoes.add(g)
                     todos_sprites.add(g)
                     jogador2.tem_granada = False
@@ -108,7 +108,9 @@ def tela_jogo(janela, recursos):
                 jogador2.perder_vida()
                 proj.kill()
 
-        janela.fill(CINZA_ESCURO)
+        # Fundo do mapa
+        janela.blit(pygame.transform.scale(recursos['mapa'], (LARGURA, ALTURA)), (0, 0))
+
         todos_sprites.draw(janela)
         desenhar_vidas(janela, recursos, jogador1, jogador2)
         desenhar_menu_texto(janela, recursos['fonte_padrao'])
