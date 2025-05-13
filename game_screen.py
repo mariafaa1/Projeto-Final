@@ -5,7 +5,7 @@ from config import FPS, LARGURA, ALTURA, CINZA_ESCURO
 def desenhar_vidas(janela, recursos, jogador1, jogador2):
     imagem_coracao = recursos['coracao']
     coracao_largura = imagem_coracao.get_width()
-    espacamento = -10
+    espacamento = -10  
 
     for i in range(jogador1.vidas):
         x = jogador1.rect.centerx - ((coracao_largura * jogador1.vidas + espacamento * (jogador1.vidas - 1)) // 2) + i * (coracao_largura + espacamento)
@@ -27,8 +27,11 @@ def tela_jogo(janela, recursos):
     controles1 = {'cima': pygame.K_w, 'baixo': pygame.K_s, 'esquerda': pygame.K_a, 'direita': pygame.K_d, 'disparo': pygame.K_SPACE}
     controles2 = {'cima': pygame.K_UP, 'baixo': pygame.K_DOWN, 'esquerda': pygame.K_LEFT, 'direita': pygame.K_RIGHT, 'disparo': pygame.K_RSHIFT}
 
-    jogador1 = Jogador(recursos['jogador1'], 100, ALTURA // 2, controles1, recursos, direcao_tiro=1)
-    jogador2 = Jogador(recursos['jogador2'], LARGURA - 100, ALTURA // 2, controles2, recursos, direcao_tiro=-1)
+    # Jogador 1 (esquerda) atira para a direita (direcao_tiro = 1)
+    jogador1 = Jogador(recursos['jogador1'], 100, ALTURA // 2, controles1, recursos, direcao_tiro=1, id_jogador=1)
+
+    # Jogador 2 (direita) atira para a esquerda (direcao_tiro = -1)
+    jogador2 = Jogador(recursos['jogador2'], LARGURA - 100, ALTURA // 2, controles2, recursos, direcao_tiro=-1, id_jogador=2)
 
     todos_sprites.add(jogador1, jogador2)
 

@@ -2,7 +2,7 @@ import pygame
 from config import LARGURA, ALTURA, VELOCIDADE_JOGADOR, VELOCIDADE_PROJETIL, TEMPO_RECARGA_DISPARO, VIDAS_MAXIMAS
 
 class Jogador(pygame.sprite.Sprite):
-    def __init__(self, imagem, pos_x, pos_y, controles, recursos, direcao_tiro):
+    def __init__(self, imagem, pos_x, pos_y, controles, recursos, direcao_tiro, id_jogador):
         super().__init__()
         self.image = imagem
         self.rect = self.image.get_rect(center=(pos_x, pos_y))
@@ -12,6 +12,7 @@ class Jogador(pygame.sprite.Sprite):
         self.ultimo_disparo = pygame.time.get_ticks()
         self.vidas = VIDAS_MAXIMAS
         self.direcao_tiro = direcao_tiro
+        self.id_jogador = id_jogador  # usado para escolher a imagem da bala correta
 
     def atualizar(self, teclas, grupo_projeteis, todos_sprites):
         if teclas[self.controles['cima']]:
@@ -27,7 +28,12 @@ class Jogador(pygame.sprite.Sprite):
 
         agora = pygame.time.get_ticks()
         if teclas[self.controles['disparo']] and agora - self.ultimo_disparo > TEMPO_RECARGA_DISPARO:
-            projetil = Projetil(self.rect.centerx, self.rect.centery, self.recursos['bala'], self.direcao_tiro, self)
+            if self.id_jogador == 1:
+                imagem_bala = self.recursos['bala1']
+            else:
+                imagem_bala = self.recursos['bala2']
+
+            projetil = Projetil(self.rect.centerx, self.rect.centery, imagem_bala, self.direcao_tiro, self)
             grupo_projeteis.add(projetil)
             todos_sprites.add(projetil)
             self.recursos['som_tiro'].play()
