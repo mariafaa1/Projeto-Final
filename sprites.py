@@ -1,6 +1,5 @@
 import pygame
-import random
-from config import LARGURA, ALTURA, VELOCIDADE_JOGADOR, VELOCIDADE_PROJETIL, VIDAS_MAXIMAS, TEMPO_EXPLOSAO, DANO_GRANADA
+from config import LARGURA, ALTURA, VELOCIDADE_JOGADOR, VELOCIDADE_PROJETIL, TEMPO_RECARGA_DISPARO, VIDAS_MAXIMAS, TEMPO_EXPLOSAO, DANO_GRANADA
 
 class Jogador(pygame.sprite.Sprite):
     def __init__(self, imagem, x, y, controles, recursos, direcao_tiro, id_jogador):
@@ -10,13 +9,13 @@ class Jogador(pygame.sprite.Sprite):
         self.velocidade = VELOCIDADE_JOGADOR
         self.controles = controles
         self.recursos = recursos
-        self.direcao_tiro = direcao_tiro
         self.ultimo_disparo = pygame.time.get_ticks()
         self.vidas = VIDAS_MAXIMAS
-        self.id_jogador = id_jogador
+        self.direcao_tiro = direcao_tiro
+        self.id = id_jogador
         self.tem_granada = False
 
-    def atualizar(self, teclas, grupo_projeteis, todos_sprites, grupo_granadas):
+    def atualizar(self, teclas, grupo_projeteis, grupo_sprites, granadas):
         if teclas[self.controles['cima']]:
             self.rect.y -= self.velocidade
         if teclas[self.controles['baixo']]:
@@ -29,20 +28,19 @@ class Jogador(pygame.sprite.Sprite):
         self.rect.clamp_ip(pygame.Rect(0, 0, LARGURA, ALTURA))
 
         agora = pygame.time.get_ticks()
-        if teclas[self.controles['disparo']] and agora - self.ultimo_disparo > 500:
-            imagem_bala = self.recursos['bala1'] if self.id_jogador == 1 else self.recursos['bala2']
-            bala = Projetil(self.rect.centerx, self.rect.centery, imagem_bala, self.direcao_tiro, self)
-            grupo_projeteis.add(bala)
-            todos_sprites.add(bala)
+        if teclas[self.controles['disparo']] and agora - self.ultimo_disparo > TEMPO_RECARGA_DISPARO:
+            imagem_bala = self.recursos['bala1'] if self.id == 1 else self.recursos['bala2']
+            projetil = Projetil(self.rect.centerx, self.rect.centery, imagem_bala, self.direcao_tiro, self)
+            grupo_projeteis.add(projetil)
+            grupo_sprites.add(projetil)
             self.recursos['som_tiro'].play()
             self.ultimo_disparo = agora
 
-        # coleta granada
-        for granada in pygame.sprite.spritecollide(self, grupo_granadas, True):
+        for granada in pygame.sprite.spritecollide(self, granadas, True):
             self.tem_granada = True
 
-    def perder_vida(self, dano=1):
-        self.vidas -= dano
+    def perder_vida(self, quantidade=1):
+        self.vidas -= quantidade
         if self.vidas <= 0:
             self.kill()
 
@@ -73,7 +71,6 @@ class GranadaLançada(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(x, y))
         self.criada_em = pygame.time.get_ticks()
         self.jogador_alvo = jogador_alvo
-        self.recursos = recursos
 
     def update(self):
         agora = pygame.time.get_ticks()
