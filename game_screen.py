@@ -48,6 +48,9 @@ def tela_jogo(janela, recursos):
 
     todos_sprites.add(jogador1, jogador2)
 
+    # Fonte extra para Menu (P)
+    fonte_menu = pygame.font.SysFont('Courier New', 22, bold=True)
+
     while executando:
         relogio.tick(FPS)
 
@@ -85,9 +88,9 @@ def tela_jogo(janela, recursos):
         janela.fill(CINZA_ESCURO)
         desenhar_vidas(janela, recursos, jogador1, jogador2)
 
-        # --- Exibe texto "Menu (P)" no canto superior direito ---
-        texto_menu = recursos['fonte_padrao'].render("Menu (P)", True, (255, 255, 255))
-        janela.blit(texto_menu, (LARGURA - texto_menu.get_width() - 10, 10))
+        # Texto "Menu (P)" estilo arcade
+        texto_menu = fonte_menu.render("Menu (P)", True, (255, 215, 0))  # amarelo estilo arcade
+        janela.blit(texto_menu, (LARGURA - texto_menu.get_width() - 10, 30))  # margem superior de 30px
 
         todos_sprites.draw(janela)
         pygame.display.flip()
