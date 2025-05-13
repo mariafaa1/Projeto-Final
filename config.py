@@ -1,21 +1,21 @@
-# Tamanho da janela
-LARGURA = 800
+# Dimensões da janela
+LARGURA = 1000  # Aumentada para mais espaço horizontal
 ALTURA = 600
 
-# Cores RGB
+# Cores
 BRANCO = (255, 255, 255)
 PRETO = (0, 0, 0)
 CINZA_ESCURO = (30, 30, 30)
 
-# Velocidade dos jogadores e projéteis
+# Velocidade
 VELOCIDADE_JOGADOR = 5
 VELOCIDADE_PROJETIL = 10
 
-# Taxa de atualização de quadros
+# FPS
 FPS = 60
 
-# Vidas por jogador
+# Vidas
 VIDAS_MAXIMAS = 3
 
-# Tempo entre disparos (em milissegundos)
+# Tempo entre tiros (ms)
 TEMPO_RECARGA_DISPARO = 500
