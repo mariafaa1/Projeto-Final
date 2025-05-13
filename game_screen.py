@@ -5,7 +5,7 @@ from config import FPS, LARGURA, ALTURA, CINZA_ESCURO
 def desenhar_vidas(janela, recursos, jogador1, jogador2):
     imagem_coracao = recursos['coracao']
     coracao_largura = imagem_coracao.get_width()
-    espacamento = -10  
+    espacamento = -15
 
     for i in range(jogador1.vidas):
         x = jogador1.rect.centerx - ((coracao_largura * jogador1.vidas + espacamento * (jogador1.vidas - 1)) // 2) + i * (coracao_largura + espacamento)
@@ -17,9 +17,25 @@ def desenhar_vidas(janela, recursos, jogador1, jogador2):
         y = jogador2.rect.top - 30
         janela.blit(imagem_coracao, (x, y))
 
+def desenhar_menu_pausa(janela, fonte):
+    overlay = pygame.Surface((LARGURA, ALTURA))
+    overlay.set_alpha(180)
+    overlay.fill((0, 0, 0))
+    janela.blit(overlay, (0, 0))
+
+    texto = fonte.render("JOGO PAUSADO", True, (255, 255, 255))
+    continuar = fonte.render("Pressione C para CONTINUAR", True, (200, 200, 200))
+    reiniciar = fonte.render("Pressione R para REINICIAR", True, (200, 200, 200))
+
+    janela.blit(texto, (LARGURA//2 - texto.get_width()//2, ALTURA//2 - 80))
+    janela.blit(continuar, (LARGURA//2 - continuar.get_width()//2, ALTURA//2 - 20))
+    janela.blit(reiniciar, (LARGURA//2 - reiniciar.get_width()//2, ALTURA//2 + 30))
+    pygame.display.flip()
+
 def tela_jogo(janela, recursos):
     relogio = pygame.time.Clock()
     executando = True
+    pausado = False
 
     todos_sprites = pygame.sprite.Group()
     projeteis = pygame.sprite.Group()
@@ -27,10 +43,7 @@ def tela_jogo(janela, recursos):
     controles1 = {'cima': pygame.K_w, 'baixo': pygame.K_s, 'esquerda': pygame.K_a, 'direita': pygame.K_d, 'disparo': pygame.K_SPACE}
     controles2 = {'cima': pygame.K_UP, 'baixo': pygame.K_DOWN, 'esquerda': pygame.K_LEFT, 'direita': pygame.K_RIGHT, 'disparo': pygame.K_RSHIFT}
 
-    # Jogador 1 (esquerda) atira para a direita (direcao_tiro = 1)
     jogador1 = Jogador(recursos['jogador1'], 100, ALTURA // 2, controles1, recursos, direcao_tiro=1, id_jogador=1)
-
-    # Jogador 2 (direita) atira para a esquerda (direcao_tiro = -1)
     jogador2 = Jogador(recursos['jogador2'], LARGURA - 100, ALTURA // 2, controles2, recursos, direcao_tiro=-1, id_jogador=2)
 
     todos_sprites.add(jogador1, jogador2)
@@ -41,6 +54,20 @@ def tela_jogo(janela, recursos):
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 executando = False
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_p:
+                    pausado = not pausado
+
+                if pausado:
+                    if evento.key == pygame.K_c:
+                        pausado = False
+                    elif evento.key == pygame.K_r:
+                        tela_jogo(janela, recursos)
+                        return
+
+        if pausado:
+            desenhar_menu_pausa(janela, recursos['fonte_padrao'])
+            continue
 
         teclas = pygame.key.get_pressed()
         jogador1.atualizar(teclas, projeteis, todos_sprites)
