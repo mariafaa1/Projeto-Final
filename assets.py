@@ -7,7 +7,7 @@ def carregar_recursos():
     recursos['jogador2'] = pygame.transform.scale(pygame.image.load('assets/player2.png'), (50, 50)).convert_alpha()
     recursos['bala1'] = pygame.transform.scale(pygame.image.load('assets/bala1.png'), (15, 15)).convert_alpha()
     recursos['bala2'] = pygame.transform.scale(pygame.image.load('assets/bala2.png'), (15, 15)).convert_alpha()
-    recursos['granada'] = pygame.transform.scale(pygame.image.load('assets/granada.png'), (25, 25)).convert_alpha()
+    recursos['granada'] = pygame.transform.scale(pygame.image.load('assets/granada.png'), (40, 40)).convert_alpha()
     recursos['explosao'] = pygame.transform.scale(pygame.image.load('assets/explosao.png'), (50, 50)).convert_alpha()
     recursos['fundo'] = pygame.transform.scale(pygame.image.load('assets/mapa1.png'), (1000, 600)).convert()
     
