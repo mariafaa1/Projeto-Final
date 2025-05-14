@@ -1,5 +1,4 @@
 
-
 # Tamanho da janela
 WIDTH = 800
 HEIGHT = 600
