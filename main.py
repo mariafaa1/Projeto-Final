@@ -1,14 +1,27 @@
+#main.py
 import pygame
-from assets import carregar_recursos
-from game_screen import tela_jogo
 from config import LARGURA, ALTURA
+from assets import carregar_animacoes
+from game_screen import tela_jogo
 
-pygame.init()
-janela = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("Duelos Pixelados")
+def main():
+    # Inicialização do Pygame
+    pygame.init()
 
-recursos = carregar_recursos()
+    # Criar janela principal
+    janela = pygame.display.set_mode((LARGURA, ALTURA))
+    pygame.display.set_caption("Jogo de Fantasia - Soldado")
 
-tela_jogo(janela, recursos)
+    # Carregar todas as animações necessárias
+    animacoes = carregar_animacoes()
 
-pygame.quit()
+    # Loop principal do jogo
+    reiniciar = True
+    while reiniciar:
+        reiniciar = tela_jogo(janela, animacoes)
+
+    # Encerrar Pygame ao sair
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
