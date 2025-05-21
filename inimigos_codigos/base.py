@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #base.py
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 import pygame
 import os
 from config import (
@@ -14,8 +17,11 @@ class InimigoBase(pygame.sprite.Sprite):
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(center=(x, y))
+<<<<<<< HEAD
         self.hitbox_rect = pygame.Rect(0, 0, 35, 60)  # Ajuste conforme o inimigo
         self.hitbox_rect.center = self.rect.center
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
         self.mask = pygame.mask.from_surface(self.image)
         self.hp_max = hp_max
         self.hp_atual = hp_max
@@ -29,10 +35,13 @@ class InimigoBase(pygame.sprite.Sprite):
         self.animacao_morte_concluida = False
         self.direita = True  # Controle de direção
         self.xp_entregue = False
+<<<<<<< HEAD
         self.velocidade_x = 0  
         self.velocidade_y = 0
         self.raio_perseguicao = 500
         
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
     def carregar_animacoes(self):
         animacoes = {
@@ -103,15 +112,19 @@ class InimigoBase(pygame.sprite.Sprite):
         
 
     def perseguir_alvo(self):
+<<<<<<< HEAD
         if self.esta_atacando:
             return
         self.velocidade_x = 0  # Reinicia as velocidades a cada frame
         self.velocidade_y = 0  #
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
         if not self.esta_morto and self.estado != 'dano' and self.alvo and not self.alvo.esta_morto:
             dx = self.alvo.rect.centerx - self.rect.centerx
             dy = self.alvo.rect.centery - self.rect.centery
             distancia = (dx**2 + dy**2)**0.5
 
+<<<<<<< HEAD
             if distancia <= self.raio_perseguicao:
                 if distancia > 50:
                     self.estado = 'andando'
@@ -129,6 +142,16 @@ class InimigoBase(pygame.sprite.Sprite):
                     self.estado = 'parado'  # ✅ **Adiciona isso: garante que fora do raio fique parado**
             else:
                 self.estado = 'parado'
+=======
+            if distancia > 50:
+                self.estado = 'andando'
+                # Atualizar direção
+                if dx != 0:
+                    self.direita = dx > 0
+                # Movimentação
+                self.rect.x += (dx / distancia) * self.velocidade
+                self.rect.y += (dy / distancia) * self.velocidade
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
     def atualizar_animacao(self, dt):
         agora = pygame.time.get_ticks()
@@ -162,8 +185,11 @@ class InimigoBase(pygame.sprite.Sprite):
                 self.estado = 'morrendo'
                 self.indice_animacao = 0
                 self.animacao_morte_concluida = False
+<<<<<<< HEAD
                 self.velocidade_x = 0 
                 self.velocidade_y = 0 
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
     def draw_hp_bar(self, tela, camera):
         if not self.esta_morto and not getattr(self, 'animacao_morte_concluida', False):
@@ -184,6 +210,7 @@ class InimigoBase(pygame.sprite.Sprite):
     
             if largura_atual > 0:  
                 pygame.draw.rect(tela, COR_HP_ATUAL, barra_rect_camera, border_radius=2)
+<<<<<<< HEAD
                 pygame.draw.rect(tela, (255, 255, 255), fundo_rect_camera, width=1, border_radius=2)
 
     def verificar_colisao(self, tilemap):
@@ -222,3 +249,6 @@ class InimigoBase(pygame.sprite.Sprite):
     
     # Atualiza a posição real
             self.rect.center = self.hitbox_rect.center
+=======
+                pygame.draw.rect(tela, (255, 255, 255), fundo_rect_camera, width=1, border_radius=2)
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)

@@ -8,7 +8,10 @@ from config import (
     COR_HP_ATUAL, COR_HP_PERDIDO, BORDA_HP, COR_BORDA, TESTE_MANUAL_DANO,
     DANO_ATAQUE_LEVE, DANO_ATAQUE_PESADO, DANO_ARCO
 )
+<<<<<<< HEAD
 from tilemap import TileMap
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
 class Soldado(pygame.sprite.Sprite):
     def __init__(self, animacoes, grupo_inimigos, grupo_projeteis):
@@ -18,8 +21,11 @@ class Soldado(pygame.sprite.Sprite):
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(topleft=(50, ALTURA // 2))
+<<<<<<< HEAD
         self.hitbox_rect = pygame.Rect(0, 0, 30, 50) 
         self.hitbox_rect.center = self.rect.center
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
         self.dano_ataque_leve = DANO_ATAQUE_LEVE 
         self.dano_ataque_pesado = DANO_ATAQUE_PESADO
         self.dano_arco = DANO_ARCO
@@ -85,6 +91,7 @@ class Soldado(pygame.sprite.Sprite):
 
         self.processar_movimento_ataque(teclas, agora)
         self.processar_dano(agora)
+<<<<<<< HEAD
         self.processar_animacoes(agora, teclas)
 
 
@@ -118,15 +125,54 @@ class Soldado(pygame.sprite.Sprite):
         # Controles de movimento (atualizado para usar velocidades)
         if teclas[pygame.K_a]:
             self.vel_x = -VELOCIDADE_JOGADOR
+=======
+        self.processar_animacoes(agora)
+
+    def processar_morte(self, agora):
+        if not self.animacao_morte_ativa:
+            self.animacao_morte_ativa = True
+            self.estado = 'morrer'
+            self.indice_animacao = 0
+            self.ultimo_update = agora
+        else:
+            if agora - self.ultimo_update > self.tempo_animacao_morte:
+                self.ultimo_update = agora
+                if self.indice_animacao < len(self.animacoes['morrer']) - 1:
+                    self.indice_animacao += 1
+                else:
+                    if not self.animacao_morte_concluida:
+                        self.animacao_morte_concluida = True
+                        self.tempo_morte_concluida = agora
+        
+        frame = self.animacoes['morrer'][min(self.indice_animacao, len(self.animacoes['morrer']) - 1)]
+        if self.virado_para_esquerda:
+            frame = pygame.transform.flip(frame, True, False)
+        self.image = frame
+
+    def processar_movimento_ataque(self, teclas, agora):
+        self.vel_x = 0 
+        self.vel_y = 0
+        movimento = False
+        novo_estado = 'parado'
+        
+        # Controles de movimento
+        if teclas[pygame.K_a]:
+            self.rect.x -= VELOCIDADE_JOGADOR
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
             novo_estado = 'andando'
             self.virado_para_esquerda = True
             movimento = True
         if teclas[pygame.K_d]:
+<<<<<<< HEAD
             self.vel_x = VELOCIDADE_JOGADOR
+=======
+            self.rect.x += VELOCIDADE_JOGADOR
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
             novo_estado = 'andando'
             self.virado_para_esquerda = False
             movimento = True
         if teclas[pygame.K_w]:
+<<<<<<< HEAD
             self.vel_y = -VELOCIDADE_JOGADOR
             novo_estado = 'andando'
             movimento = True
@@ -136,6 +182,16 @@ class Soldado(pygame.sprite.Sprite):
             movimento = True
 
         # Aplicar movimento (a colisão será verificada em verificar_colisao)
+=======
+            self.rect.y -= VELOCIDADE_JOGADOR
+            novo_estado = 'andando'
+            movimento = True
+        if teclas[pygame.K_s]:
+            self.rect.y += VELOCIDADE_JOGADOR
+            novo_estado = 'andando'
+            movimento = True
+
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
         self.rect.x += self.vel_x
         self.rect.y += self.vel_y
 
@@ -176,7 +232,11 @@ class Soldado(pygame.sprite.Sprite):
                     self.animacao_dano_ativa = False
                     self.indice_dano = 0
 
+<<<<<<< HEAD
     def processar_animacoes(self, agora, teclas):
+=======
+    def processar_animacoes(self, agora):
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
         # Atualização normal da animação
         if not self.executando_ataque and agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
@@ -185,7 +245,11 @@ class Soldado(pygame.sprite.Sprite):
 
         # Processamento especial para ataques
         if self.executando_ataque:
+<<<<<<< HEAD
             self.processar_animacao_ataque(agora, teclas)
+=======
+            self.processar_animacao_ataque(agora)
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
         # Seleção do frame
         if self.animacao_dano_ativa:
@@ -203,29 +267,48 @@ class Soldado(pygame.sprite.Sprite):
             frame = pygame.transform.flip(frame, True, False)
         self.image = frame
 
+<<<<<<< HEAD
     def processar_animacao_ataque(self, agora, teclas):
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
 
+=======
+    def processar_animacao_ataque(self, agora):
+        if agora - self.ultimo_update > self.tempo_animacao:
+            self.ultimo_update = agora
+        
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
             if self.indice_animacao < len(self.animacoes[self.estado]) - 1:
                 self.indice_animacao += 1
             else:
                 self.indice_animacao = len(self.animacoes[self.estado]) - 1
 
+<<<<<<< HEAD
         # Aplicar dano/projétil no frame especificado
             if self.indice_animacao == self.ataques[self.estado]['frame_dano']:
                 if self.estado == 'ataque_arco':
                     self.disparar_flecha(teclas)  # Agora passando teclas como parâmetro
+=======
+            # Aplicar dano/projétil no frame especificado
+            if self.indice_animacao == self.ataques[self.estado]['frame_dano']:
+                if self.estado == 'ataque_arco':
+                    self.disparar_flecha()
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
                 else:
                     dano = self.dano_ataque_leve if self.estado == 'ataque_leve' else self.dano_ataque_pesado
                     self.aplicar_dano_corpo_a_corpo(dano)
 
+<<<<<<< HEAD
         # Finalizar animação
+=======
+            # Finalizar animação
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
             if self.indice_animacao >= len(self.animacoes[self.estado]) - 1:
                 self.indice_animacao = 0
                 self.executando_ataque = False
                 self.estado = 'parado'
 
+<<<<<<< HEAD
     def disparar_flecha(self, teclas):
         deslocamento_y = self.ataques['ataque_arco']['deslocamento_flecha_y']
         centro = (self.rect.centerx, self.rect.centery + deslocamento_y)
@@ -255,6 +338,12 @@ class Soldado(pygame.sprite.Sprite):
             dir_y *= fator
         
         novo_proj = Projetil(centro, dir_x, dir_y, self.grupo_inimigos, self.dano_arco)
+=======
+    def disparar_flecha(self):
+        deslocamento_y = self.ataques['ataque_arco']['deslocamento_flecha_y']
+        centro_personagem = (self.rect.centerx, self.rect.centery + deslocamento_y)
+        novo_proj = Projetil(centro_personagem, self.virado_para_esquerda, self.grupo_inimigos, self.dano_arco)
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
         self.grupo_projeteis.add(novo_proj)
         self.disparar_flecha_pendente = False
 
@@ -362,6 +451,7 @@ class Soldado(pygame.sprite.Sprite):
         self.dano_ataque_leve *= 3  
         self.dano_ataque_pesado *= 3
         self.dano_arco *= 3
+<<<<<<< HEAD
     
     
     def verificar_colisao(self, tilemap):
@@ -407,10 +497,20 @@ class Projetil(pygame.sprite.Sprite):
             
             self.image = pygame.transform.rotate(self.image, angulo)
             
+=======
+class Projetil(pygame.sprite.Sprite):
+    def __init__(self, position, virado_para_esquerda, grupo_inimigos, dano):
+        super().__init__()
+        try:
+            self.image = pygame.image.load('assets/projetil_arco/flecha.png').convert_alpha()
+            if virado_para_esquerda:
+                self.image = pygame.transform.flip(self.image, True, False)
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
             self.rect = self.image.get_rect(center=position)
         except Exception as e:
             print(f"Erro ao carregar flecha: {e}")
             self.kill()
+<<<<<<< HEAD
         
         self.velocidade = VELOCIDADE_PROJETIL
         self.direcao_x = direcao_x
@@ -437,3 +537,22 @@ class Projetil(pygame.sprite.Sprite):
             if self.rect.colliderect(rect):
                 self.kill()
                 return
+=======
+        self.velocidade = VELOCIDADE_PROJETIL
+        self.direcao = -1 if virado_para_esquerda else 1
+        self.grupo_inimigos = grupo_inimigos
+        self.dano = dano
+        self.mask = pygame.mask.from_surface(self.image)  # Mask para colisão precisa
+
+    def update(self):
+        self.rect.x += self.velocidade * self.direcao
+        
+        # Verificação de colisão com máscara
+        for inimigo in pygame.sprite.spritecollide(self, self.grupo_inimigos, False, pygame.sprite.collide_mask):
+            inimigo.receber_dano(self.dano)
+            self.kill()
+            break
+        
+        if self.rect.right < -50 or self.rect.left > LARGURA + 50:
+            self.kill()
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #orc_normal.py
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 from .base import InimigoBase
 import random
 import pygame
@@ -30,8 +33,11 @@ class OrcNormal(InimigoBase):
         self.esta_atacando = True
         self.estado = random.choice(['ataque1', 'ataque2'])
         self.indice_animacao = 0
+<<<<<<< HEAD
         self.velocidade_x = 0  
         self.velocidade_y = 0
+=======
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
     def atualizar_animacao(self, dt):
         super().atualizar_animacao(dt)

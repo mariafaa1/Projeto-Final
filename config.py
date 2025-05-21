@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 LARGURA = 1400
+=======
+LARGURA = 1000
+>>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 ALTURA = 600
 FPS = 60
 VELOCIDADE_JOGADOR = 5
