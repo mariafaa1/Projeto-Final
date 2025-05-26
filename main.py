@@ -1,27 +1,13 @@
-#main.py
 import pygame
 from config import LARGURA, ALTURA
 from assets import carregar_animacoes
-from game_screen import tela_jogo
+from game_screen import game_screen
 
-def main():
-    # Inicialização do Pygame
-    pygame.init()
+pygame.init()
+janela = pygame.display.set_mode((LARGURA, ALTURA))
+pygame.display.set_caption("Animação do Soldado")
 
-    # Criar janela principal
-    janela = pygame.display.set_mode((LARGURA, ALTURA))
-    pygame.display.set_caption("Jogo de Fantasia - Soldado")
+animacoes = carregar_animacoes()
 
-    # Carregar todas as animações necessárias
-    animacoes = carregar_animacoes()
-
-    # Loop principal do jogo
-    reiniciar = True
-    while reiniciar:
-        reiniciar = tela_jogo(janela, animacoes)
-
-    # Encerrar Pygame ao sair
-    pygame.quit()
-
-if __name__ == "__main__":
-    main()
+game_screen(janela, animacoes)
+pygame.quit()
