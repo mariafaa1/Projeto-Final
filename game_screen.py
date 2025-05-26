@@ -1,13 +1,11 @@
 import pygame
 from sprites import Soldado
-from config import LARGURA, ALTURA, FPS
+from config import FPS, FUNDO_BRANCO
 
-def game_screen(janela, animacoes):
+def tela_jogo(janela, animacoes):
     relogio = pygame.time.Clock()
-    todos_sprites = pygame.sprite.Group()
-
-    soldado = Soldado(animacoes, LARGURA//2, ALTURA//2)
-    todos_sprites.add(soldado)
+    soldado = Soldado(animacoes)
+    grupo = pygame.sprite.Group(soldado)
 
     executando = True
     while executando:
@@ -18,8 +16,12 @@ def game_screen(janela, animacoes):
                 executando = False
 
         teclas = pygame.key.get_pressed()
-        todos_sprites.update(teclas)
+        grupo.update(teclas)
 
-        janela.fill((20, 20, 20))
-        todos_sprites.draw(janela)
+        janela.fill(FUNDO_BRANCO)
+
+        # Desenhar todos os sprites manualmente
+        for sprite in grupo:
+            sprite.draw(janela)
+
         pygame.display.flip()
