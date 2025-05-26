@@ -1,6 +1,6 @@
 import pygame
 from sprites import Soldado
-from config import FPS, FUNDO_BRANCO
+from config import FPS
 
 def tela_jogo(janela, animacoes):
     relogio = pygame.time.Clock()
@@ -18,10 +18,6 @@ def tela_jogo(janela, animacoes):
         teclas = pygame.key.get_pressed()
         grupo.update(teclas)
 
-        janela.fill(FUNDO_BRANCO)
-
-        # Desenhar todos os sprites manualmente
-        for sprite in grupo:
-            sprite.draw(janela)
-
+        janela.fill((30, 30, 30))
+        grupo.draw(janela)
         pygame.display.flip()
