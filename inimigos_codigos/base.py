@@ -18,10 +18,13 @@ class InimigoBase(pygame.sprite.Sprite):
         self.hp_atual = hp_max
         self.velocidade = velocidade
         self.alvo = alvo
-        self.tempo_animacao = 100
+        self.tempo_animacao = 200
         self.ultimo_update = pygame.time.get_ticks()
         self.esta_morto = False
         self.esta_atacando = False
+        self.tempo_dano = 0
+        self.animacao_morte_concluida = False
+        self.direita = True  # Controle de direção
 
     def carregar_animacoes(self):
         animacoes = {
@@ -29,48 +32,70 @@ class InimigoBase(pygame.sprite.Sprite):
             'andando': [],
             'morrendo': [],
             'ataque1': [],
-            'ataque2': []
+            'ataque2': [],
+            'dano': []
         }
 
+        # Carregar frames parado
         pasta_parado = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_parado')
         for i in range(6):
             img = pygame.image.load(os.path.join(pasta_parado, f'orc_parado{i}.png')).convert_alpha()
             animacoes['parado'].append(img)
 
+        # Carregar frames andando
         pasta_andando = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_andando')
         for i in range(6):
             img = pygame.image.load(os.path.join(pasta_andando, f'orc_andando{i}.png')).convert_alpha()
             animacoes['andando'].append(img)
 
+        # Carregar frames morrendo
         pasta_morrendo = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_morrendo')
         for i in range(16, 20):
             img = pygame.image.load(os.path.join(pasta_morrendo, f'Orc-Attack01-{i}.png.png')).convert_alpha()
             animacoes['morrendo'].append(img)
 
+        # Carregar frames ataque1
         pasta_ataque1 = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_ataque1')
         for i in range(20, 26):
             img = pygame.image.load(os.path.join(pasta_ataque1, f'Orc-Attack01-{i}.png.png')).convert_alpha()
             animacoes['ataque1'].append(img)
 
+        # Carregar frames ataque2
         pasta_ataque2 = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_ataque_2')
         for i in range(6):
             img = pygame.image.load(os.path.join(pasta_ataque2, f'orc{i}.png')).convert_alpha()
             animacoes['ataque2'].append(img)
 
+        # Carregar frames dano
+        pasta_dano = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_dano')
+        for i in range(1, 5):
+            img = pygame.image.load(os.path.join(pasta_dano, f'morte{i}.png')).convert_alpha()
+            animacoes['dano'].append(img)
+
         return animacoes
 
     def update(self, dt):
-        self.perseguir_alvo()
-        self.atualizar_animacao(dt)
+        if not self.esta_morto:
+            self.perseguir_alvo()
+            self.atualizar_animacao(dt)
+        elif self.estado == 'morrendo' and not self.animacao_morte_concluida:
+            self.atualizar_animacao(dt)
+            
+        if self.estado == 'dano' and pygame.time.get_ticks() - self.tempo_dano > 500:
+            self.estado = 'parado'
 
     def perseguir_alvo(self):
-        if self.alvo and not self.alvo.esta_morto and not self.esta_morto:
+        if not self.esta_morto and self.estado != 'dano' and self.alvo and not self.alvo.esta_morto:
             dx = self.alvo.rect.centerx - self.rect.centerx
             dy = self.alvo.rect.centery - self.rect.centery
             distancia = (dx**2 + dy**2)**0.5
 
             if distancia > 50:
                 self.estado = 'andando'
+                # Atualizar direção
+                if dx != 0:
+                    self.direita = dx > 0
+                # Movimentação
                 self.rect.x += (dx / distancia) * self.velocidade
                 self.rect.y += (dy / distancia) * self.velocidade
 
@@ -78,22 +103,37 @@ class InimigoBase(pygame.sprite.Sprite):
         agora = pygame.time.get_ticks()
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
-            if self.estado == 'morrendo' and self.indice_animacao >= len(self.animacoes['morrendo'])-1:
-                self.kill()
+            
+            # Avançar animação
+            if self.estado == 'morrendo':
+                if self.indice_animacao < len(self.animacoes['morrendo']) - 1:
+                    self.indice_animacao += 1
+                else:
+                    self.animacao_morte_concluida = True
             else:
                 self.indice_animacao = (self.indice_animacao + 1) % len(self.animacoes[self.estado])
-                self.image = self.animacoes[self.estado][self.indice_animacao]
-                self.mask = pygame.mask.from_surface(self.image)
+            
+            # Aplicar flip se necessário
+            self.image = self.animacoes[self.estado][self.indice_animacao]
+            if not self.direita:
+                self.image = pygame.transform.flip(self.image, True, False)
+            
+            self.mask = pygame.mask.from_surface(self.image)
 
     def receber_dano(self, quantidade):
-        self.hp_atual = max(0, self.hp_atual - quantidade)
-        if self.hp_atual <= 0 and not self.esta_morto:
-            self.esta_morto = True
-            self.estado = 'morrendo'
+        if not self.esta_morto and not self.animacao_morte_concluida:
+            self.hp_atual = max(0, self.hp_atual - quantidade)
+            self.estado = 'dano'
             self.indice_animacao = 0
+            self.tempo_dano = pygame.time.get_ticks()
+            if self.hp_atual <= 0:
+                self.esta_morto = True
+                self.estado = 'morrendo'
+                self.indice_animacao = 0
+                self.animacao_morte_concluida = False
 
     def draw_hp_bar(self, tela):
-        if not self.esta_morto:
+        if not self.esta_morto and not self.animacao_morte_concluida:
             barra_x = self.rect.centerx - (LARGURA_BARRA // 2)
             barra_y = self.rect.centery + POSICAO_BARRA_OFFSET_Y
             proporcao_hp = self.hp_atual / self.hp_max

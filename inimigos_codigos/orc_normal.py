@@ -6,11 +6,11 @@ class OrcNormal(InimigoBase):
     def __init__(self, x, y, alvo):
         super().__init__(x, y, 100, 1, alvo)
         self.tipos_ataque = ["ataque1", "ataque2"]
-        self.dano_ataque = 15
+        self.dano_ataque = 15  # Dano ajustado
 
     def update(self, dt):
         super().update(dt)
-        if not self.esta_morto and not self.esta_atacando:
+        if not self.esta_morto and not self.esta_atacando and self.estado not in ['dano', 'morrendo']:
             dx = self.alvo.rect.centerx - self.rect.centerx
             dy = self.alvo.rect.centery - self.rect.centery
             distancia = (dx**2 + dy**2)**0.5
@@ -27,5 +27,5 @@ class OrcNormal(InimigoBase):
         if self.esta_atacando and self.indice_animacao == len(self.animacoes[self.estado])-1:
             self.esta_atacando = False
             self.estado = 'parado'
-            if pygame.sprite.collide_mask(self, self.alvo):
+            if pygame.sprite.collide_rect(self, self.alvo):  # Verificação de colisão melhorada
                 self.alvo.receber_dano(self.dano_ataque)

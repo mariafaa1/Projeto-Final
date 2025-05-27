@@ -15,8 +15,34 @@ class Soldado(pygame.sprite.Sprite):
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(center=(LARGURA//2, ALTURA//2))
-        self.tempo_animacao = 100
-        self.tempo_animacao_morte = 150
+        
+        # ======================================================
+        # PARÂMETROS AJUSTÁVEIS - ANIMAÇÃO
+        # ======================================================
+        self.tempo_animacao = 100       # Velocidade geral das animações (ms por frame)
+        self.tempo_animacao_morte = 150 # Velocidade animação morte
+        
+        # ======================================================
+        # PARÂMETROS AJUSTÁVEIS - ATAQUES
+        # ======================================================
+        self.ataques = {
+            'ataque_leve': {
+                'frame_dano': 3,                          # Frame que aplica o dano
+                'cooldown': TEMPO_COOLDOWN_ATAQUE_LEVE,   # Tempo entre ataques
+                'hitbox': {'offset_x': 60, 'offset_y': -25, 'largura': 80, 'altura': 70}  # Posição e tamanho
+            },
+            'ataque_pesado': {
+                'frame_dano': 4,
+                'cooldown': TEMPO_COOLDOWN_ATAQUE_PESADO,
+                'hitbox': {'offset_x': 70, 'offset_y': -30, 'largura': 90, 'altura': 80}
+            },
+            'ataque_arco': {
+                'frame_dano': len(animacoes['ataque_arco']) - 2,  # Penúltimo frame (automatico)
+                'cooldown': TEMPO_COOLDOWN_ARCO,
+                'deslocamento_flecha_y': 15  # Ajuste vertical do ponto de disparo
+            }
+        }
+
         self.ultimo_update = pygame.time.get_ticks()
         self.virado_para_esquerda = False
         self.executando_ataque = False
@@ -33,119 +59,173 @@ class Soldado(pygame.sprite.Sprite):
         self.animacao_morte_concluida = False
         self.tempo_morte_concluida = 0
         self.grupo_inimigos = grupo_inimigos
+        self.indice_dano = 0
+        self.ultimo_update_dano = 0
 
     def update(self, teclas):
         agora = pygame.time.get_ticks()
         
         if self.esta_morto:
-            if not self.animacao_morte_ativa:
-                self.animacao_morte_ativa = True
-                self.estado = 'morrer'
-                self.indice_animacao = 0
-                self.ultimo_update = agora
-            else:
-                if agora - self.ultimo_update > self.tempo_animacao_morte:
-                    self.ultimo_update = agora
-                    if self.indice_animacao < len(self.animacoes['morrer']) - 1:
-                        self.indice_animacao += 1
-                    else:
-                        if not self.animacao_morte_concluida:
-                            self.animacao_morte_concluida = True
-                            self.tempo_morte_concluida = agora
-            
-            frame = self.animacoes['morrer'][min(self.indice_animacao, len(self.animacoes['morrer']) - 1)]
-            if self.virado_para_esquerda:
-                frame = pygame.transform.flip(frame, True, False)
-            self.image = frame
+            self.processar_morte(agora)
             return
 
-        if not self.animacao_dano_ativa:
-            if not self.executando_ataque:
-                self.estado = 'parado'
-                if teclas[pygame.K_a]:
-                    self.rect.x -= VELOCIDADE_JOGADOR
-                    self.estado = 'andando'
-                    self.virado_para_esquerda = True
-                elif teclas[pygame.K_d]:
-                    self.rect.x += VELOCIDADE_JOGADOR
-                    self.estado = 'andando'
-                    self.virado_para_esquerda = False
-                if teclas[pygame.K_w]:
-                    self.rect.y -= VELOCIDADE_JOGADOR
-                    self.estado = 'andando'
-                elif teclas[pygame.K_s]:
-                    self.rect.y += VELOCIDADE_JOGADOR
-                    self.estado = 'andando'
-                if teclas[pygame.K_k] and agora - self.ultimo_ataque_pesado > TEMPO_COOLDOWN_ATAQUE_PESADO:
-                    self.estado = 'ataque_pesado'
-                    self.indice_animacao = 0
-                    self.executando_ataque = True
-                    self.ultimo_ataque_pesado = agora
-                    self.ultimo_update = agora
-                elif teclas[pygame.K_j] and agora - self.ultimo_ataque_leve > TEMPO_COOLDOWN_ATAQUE_LEVE:
-                    self.estado = 'ataque_leve'
-                    self.indice_animacao = 0
-                    self.executando_ataque = True
-                    self.ultimo_ataque_leve = agora
-                    self.ultimo_update = agora
-                elif teclas[pygame.K_l] and agora - self.ultimo_ataque_arco > TEMPO_COOLDOWN_ARCO:
-                    self.estado = 'ataque_arco'
-                    self.indice_animacao = 0
-                    self.executando_ataque = True
-                    self.disparar_flecha_pendente = True
-                    self.ultimo_ataque_arco = agora
-                    self.ultimo_update = agora
+        self.processar_movimento_ataque(teclas, agora)
+        self.processar_dano(agora)
+        self.processar_animacoes(agora)
 
-        if TESTE_MANUAL_DANO and teclas[pygame.K_h] and not self.esta_morto:
-            self.receber_dano(50)
-
-        if self.animacao_dano_ativa:
-            if agora - self.ultimo_update > self.tempo_animacao:
-                self.ultimo_update = agora
-                self.indice_animacao += 1
-                if self.indice_animacao >= len(self.animacoes['dano']):
-                    self.indice_animacao = 0
-                    self.animacao_dano_ativa = False
-                    self.estado = 'parado'
-
-        elif agora - self.ultimo_update > self.tempo_animacao:
+    def processar_morte(self, agora):
+        if not self.animacao_morte_ativa:
+            self.animacao_morte_ativa = True
+            self.estado = 'morrer'
+            self.indice_animacao = 0
             self.ultimo_update = agora
-            self.indice_animacao += 1
-            total_frames = len(self.animacoes[self.estado])
-            
-            if self.estado == 'ataque_arco' and self.disparar_flecha_pendente and self.indice_animacao == total_frames - 2:
-                deslocamento_y = 10
-                centro_personagem = (self.rect.centerx, self.rect.centery + deslocamento_y)
-                novo_proj = Projetil(centro_personagem, self.virado_para_esquerda, self.grupo_inimigos)
-                self.grupo_projeteis.add(novo_proj)
-                self.disparar_flecha_pendente = False
-            
-            if self.estado == 'ataque_leve' and self.indice_animacao == len(self.animacoes['ataque_leve']) - 2:
-                self.aplicar_dano_corpo_a_corpo(DANO_ATAQUE_LEVE)
-            
-            if self.estado == 'ataque_pesado' and self.indice_animacao == len(self.animacoes['ataque_pesado']) - 2:
-                self.aplicar_dano_corpo_a_corpo(DANO_ATAQUE_PESADO)
-
-            if self.indice_animacao >= total_frames:
-                self.indice_animacao = 0
-                if self.executando_ataque:
-                    self.executando_ataque = False
-                    self.estado = 'parado'
-
-        frame_list = self.animacoes.get(self.estado)
-        frame = frame_list[self.indice_animacao] if frame_list and self.indice_animacao < len(frame_list) else self.image
+        else:
+            if agora - self.ultimo_update > self.tempo_animacao_morte:
+                self.ultimo_update = agora
+                if self.indice_animacao < len(self.animacoes['morrer']) - 1:
+                    self.indice_animacao += 1
+                else:
+                    if not self.animacao_morte_concluida:
+                        self.animacao_morte_concluida = True
+                        self.tempo_morte_concluida = agora
+        
+        frame = self.animacoes['morrer'][min(self.indice_animacao, len(self.animacoes['morrer']) - 1)]
         if self.virado_para_esquerda:
             frame = pygame.transform.flip(frame, True, False)
         self.image = frame
 
+    def processar_movimento_ataque(self, teclas, agora):
+        movimento = False
+        novo_estado = 'parado'
+        
+        # Controles de movimento
+        if teclas[pygame.K_a]:
+            self.rect.x -= VELOCIDADE_JOGADOR
+            novo_estado = 'andando'
+            self.virado_para_esquerda = True
+            movimento = True
+        if teclas[pygame.K_d]:
+            self.rect.x += VELOCIDADE_JOGADOR
+            novo_estado = 'andando'
+            self.virado_para_esquerda = False
+            movimento = True
+        if teclas[pygame.K_w]:
+            self.rect.y -= VELOCIDADE_JOGADOR
+            novo_estado = 'andando'
+            movimento = True
+        if teclas[pygame.K_s]:
+            self.rect.y += VELOCIDADE_JOGADOR
+            novo_estado = 'andando'
+            movimento = True
+
+        if not self.executando_ataque:
+            self.estado = novo_estado
+
+        # Controle de ataques
+        if not self.executando_ataque:
+            if teclas[pygame.K_k] and (agora - self.ultimo_ataque_pesado > self.ataques['ataque_pesado']['cooldown']):
+                self.iniciar_ataque('ataque_pesado', agora)
+                self.ultimo_ataque_pesado = agora
+                
+            elif teclas[pygame.K_j] and (agora - self.ultimo_ataque_leve > self.ataques['ataque_leve']['cooldown']):
+                self.iniciar_ataque('ataque_leve', agora)
+                self.ultimo_ataque_leve = agora
+                
+            elif teclas[pygame.K_l] and (agora - self.ultimo_ataque_arco > self.ataques['ataque_arco']['cooldown']):
+                self.iniciar_ataque('ataque_arco', agora)
+                self.ultimo_ataque_arco = agora
+
+        if TESTE_MANUAL_DANO and teclas[pygame.K_h]:
+            self.receber_dano(50)
+
+    def iniciar_ataque(self, tipo_ataque, agora):
+        self.estado = tipo_ataque
+        self.indice_animacao = 0
+        self.executando_ataque = True
+        self.ultimo_update = agora
+        if tipo_ataque == 'ataque_arco':
+            self.disparar_flecha_pendente = True
+
+    def processar_dano(self, agora):
+        if self.animacao_dano_ativa:
+            if agora - self.ultimo_update_dano > self.tempo_animacao:
+                self.ultimo_update_dano = agora
+                self.indice_dano += 1
+                if self.indice_dano >= len(self.animacoes['dano']):
+                    self.animacao_dano_ativa = False
+                    self.indice_dano = 0
+
+    def processar_animacoes(self, agora):
+        # Atualização normal da animação
+        if not self.executando_ataque and agora - self.ultimo_update > self.tempo_animacao:
+            self.ultimo_update = agora
+            if self.estado in self.animacoes:
+                self.indice_animacao = (self.indice_animacao + 1) % len(self.animacoes[self.estado])
+
+        # Processamento especial para ataques
+        if self.executando_ataque:
+            self.processar_animacao_ataque(agora)
+
+        # Seleção do frame
+        if self.animacao_dano_ativa:
+            frame_index = min(self.indice_dano, len(self.animacoes['dano'])-1)
+            frame = self.animacoes['dano'][frame_index]
+        else:
+            if self.estado in self.animacoes:
+                frame_list = self.animacoes[self.estado]
+                frame_index = min(self.indice_animacao, len(frame_list)-1)
+                frame = frame_list[frame_index]
+            else:
+                frame = self.image
+
+        if self.virado_para_esquerda:
+            frame = pygame.transform.flip(frame, True, False)
+        self.image = frame
+
+    def processar_animacao_ataque(self, agora):
+        if agora - self.ultimo_update > self.tempo_animacao:
+            self.ultimo_update = agora
+        
+            if self.indice_animacao < len(self.animacoes[self.estado]) - 1:
+                self.indice_animacao += 1
+            else:
+                self.indice_animacao = len(self.animacoes[self.estado]) - 1
+
+            # Aplicar dano/projétil no frame especificado
+            if self.indice_animacao == self.ataques[self.estado]['frame_dano']:
+                if self.estado == 'ataque_arco':
+                    self.disparar_flecha()
+                else:
+                    dano = DANO_ATAQUE_LEVE if self.estado == 'ataque_leve' else DANO_ATAQUE_PESADO
+                    self.aplicar_dano_corpo_a_corpo(dano)
+
+            # Finalizar animação
+            if self.indice_animacao >= len(self.animacoes[self.estado]) - 1:
+                self.indice_animacao = 0
+                self.executando_ataque = False
+                self.estado = 'parado'
+
+    def disparar_flecha(self):
+        deslocamento_y = self.ataques['ataque_arco']['deslocamento_flecha_y']
+        centro_personagem = (self.rect.centerx, self.rect.centery + deslocamento_y)
+        novo_proj = Projetil(centro_personagem, self.virado_para_esquerda, self.grupo_inimigos)
+        self.grupo_projeteis.add(novo_proj)
+        self.disparar_flecha_pendente = False
+
     def aplicar_dano_corpo_a_corpo(self, dano):
-        offset_x = -50 if self.virado_para_esquerda else 50
+        config = self.ataques[self.estado]['hitbox']
+        offset_x = -config['offset_x'] if self.virado_para_esquerda else config['offset_x']
+        
         hitbox = pygame.Rect(
-            self.rect.centerx + offset_x - 25,
-            self.rect.centery - 25,
-            50,
-            50
+            self.rect.centerx + offset_x - (config['largura']//2),
+            self.rect.centery + config['offset_y'],
+            config['largura'],
+            config['altura']
         )
+        
+        # Visualização da hitbox (debug)
+        # pygame.draw.rect(pygame.display.get_surface(), (255,0,0), hitbox, 2)
+        
         for inimigo in self.grupo_inimigos:
             if hitbox.colliderect(inimigo.rect):
                 inimigo.receber_dano(dano)
@@ -157,9 +237,8 @@ class Soldado(pygame.sprite.Sprite):
                 self.esta_morto = True
             else:
                 self.animacao_dano_ativa = True
-                self.estado = 'dano'
-                self.indice_animacao = 0
-                self.ultimo_update = pygame.time.get_ticks()
+                self.indice_dano = 0
+                self.ultimo_update_dano = pygame.time.get_ticks()
 
     def draw_hp_bar(self, tela):
         if not self.esta_morto:
