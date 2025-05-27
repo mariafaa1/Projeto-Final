@@ -1,8 +1,10 @@
 import pygame
+import random
 from config import (
     LARGURA, ALTURA,
     VELOCIDADE_JOGADOR,
     VELOCIDADE_PROJETIL,
+    VELOCIDADE_ORC,
     TEMPO_COOLDOWN_ATAQUE_PESADO,
     TEMPO_COOLDOWN_ARCO
 )
@@ -15,7 +17,7 @@ class Soldado(pygame.sprite.Sprite):
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(center=(LARGURA // 2, ALTURA // 2))
-        self.tempo_animacao = 100
+        self.tempo_animacao = 100  # 100ms por frame
         self.ultimo_update = pygame.time.get_ticks()
         self.virado_para_esquerda = False
         self.executando_ataque = False
@@ -84,7 +86,7 @@ class Soldado(pygame.sprite.Sprite):
                 and self.disparar_flecha_pendente
                 and self.indice_animacao == total_frames - 2
             ):
-                deslocamento_y = 10 
+                deslocamento_y = 15  # Ajuste vertical da flecha
                 centro_personagem = (self.rect.centerx, self.rect.centery + deslocamento_y)
                 novo_proj = Projetil(centro_personagem, self.virado_para_esquerda)
                 self.projeteis.add(novo_proj)
@@ -111,6 +113,7 @@ class Soldado(pygame.sprite.Sprite):
         tela.blit(self.image, self.rect)
         self.projeteis.draw(tela)
 
+
 class Projetil(pygame.sprite.Sprite):
     def __init__(self, position, virado_para_esquerda):
         super().__init__()
@@ -121,3 +124,50 @@ class Projetil(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.x += self.velocidade * self.direcao
+
+
+class Orc(pygame.sprite.Sprite):
+    def __init__(self, animacoes, jogador):
+        super().__init__()
+        self.animacoes = animacoes
+        self.estado = 'orc_andando'  # Estado inicial: andando
+        self.indice_animacao = 0
+        self.image = self.animacoes[self.estado][self.indice_animacao]
+        self.rect = self.image.get_rect(center=(random.randint(100, LARGURA-100), random.randint(100, ALTURA-100)))  # Spawn aleatório
+        self.tempo_animacao = 100  # 100ms por frame
+        self.ultimo_update = pygame.time.get_ticks()
+        self.jogador = jogador  # Referência ao jogador (principal)
+        self.virado_para_esquerda = False
+        self.velocidade = VELOCIDADE_ORC  # Velocidade do Orc
+
+    def update(self):
+        agora = pygame.time.get_ticks()
+
+        # Movimentação em direção ao jogador
+        dx = self.jogador.rect.centerx - self.rect.centerx
+        dy = self.jogador.rect.centery - self.rect.centery
+        distancia = (dx**2 + dy**2)**0.5  # Distância entre o Orc e o jogador
+
+        if distancia > 50:  # Quando o Orc estiver a uma distância considerável, ele se move
+            dx, dy = dx / distancia, dy / distancia  # Normalizando o vetor
+            self.rect.x += dx * self.velocidade
+            self.rect.y += dy * self.velocidade
+            self.estado = 'orc_andando'  # Muda para o estado de andando
+        else:
+            self.estado = 'orc_andando'  # Caso contrário, permanece andando
+
+        # Atualiza a animação
+        if agora - self.ultimo_update > self.tempo_animacao:
+            self.ultimo_update = agora
+            self.indice_animacao += 1
+
+            if self.estado == 'orc_andando' and self.indice_animacao >= len(self.animacoes['orc_andando']):
+                self.indice_animacao = 0
+
+        # Atualiza a imagem do Orc com a animação
+        frame_list = self.animacoes.get(self.estado)
+        if frame_list and self.indice_animacao < len(frame_list):
+            frame = frame_list[self.indice_animacao]
+            if self.virado_para_esquerda:
+                frame = pygame.transform.flip(frame, True, False)
+            self.image = frame
