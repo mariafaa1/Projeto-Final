@@ -1,4 +1,3 @@
-# game_screen.py (corrigido com suporte à câmera)
 import pygame
 import random
 from sprites import Soldado
@@ -13,7 +12,7 @@ from inimigos_codigos.boss1.base_boss1 import BossBase
 from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura
 from inimigos_codigos.Inimigos_mapa2.esqueleto_arqueiro import EsqueletoArqueiro
 from camera import Camera
-
+from tilemap import TileMap
 
 def debug_draw_hitboxes(surface, grupos, camera, cor=(255, 0, 0), espessura=2):
     for grupo in grupos:
@@ -21,7 +20,6 @@ def debug_draw_hitboxes(surface, grupos, camera, cor=(255, 0, 0), espessura=2):
             pygame.draw.rect(surface, cor, camera.aplicar(sprite), espessura)
             centro = camera.aplicar_rect(sprite.rect).center
             pygame.draw.circle(surface, (0, 255, 0), centro, 3)
-
 
 class LevelManager:
     def __init__(self):
@@ -34,7 +32,6 @@ class LevelManager:
 
     def spawn_fase(self, grupo_inimigos, alvo, grupo_jogador, grupo_projeteis):
         config = self.config_fases[self.fase_atual]
-
         boss = config['boss']['classe'](x=config['boss']['pos'][0], y=config['boss']['pos'][1], alvo=alvo)
         grupo_inimigos.add(boss)
 
@@ -51,20 +48,25 @@ class LevelManager:
 
             grupo_inimigos.add(inimigo)
 
-
 def tela_jogo(janela, animacoes):
     relogio = pygame.time.Clock()
+
+    mapa = TileMap("Mapas/Mapa1/mapa1.tmx", zoom=4)  # Zoom ajustável
 
     grupo_inimigos = pygame.sprite.Group()
     grupo_projeteis = pygame.sprite.Group()
     soldado = Soldado(animacoes, grupo_inimigos, grupo_projeteis)
     grupo_jogador = pygame.sprite.Group(soldado)
 
-    level_manager = LevelManager()
-    level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador, grupo_projeteis)
+    if "player" in mapa.spawn_points:
+        spawn_rect = mapa.spawn_points["player"]
+        soldado.rect.center = spawn_rect.center
 
     camera = Camera(LARGURA, ALTURA)
-    camera.configurar_limites(3000, 1000)
+    camera.configurar_limites(*mapa.map_size)
+
+    level_manager = LevelManager()
+    level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador, grupo_projeteis)
 
     estado_jogo = JOGANDO
     fonte = pygame.font.Font(CAMINHO_FONTE, FONTE_TAMANHO)
@@ -89,7 +91,6 @@ def tela_jogo(janela, animacoes):
             grupo_jogador.update(teclas)
             grupo_inimigos.update(dt)
             grupo_projeteis.update()
-
             camera.update(soldado)
 
             if soldado.animacao_morte_concluida:
@@ -102,25 +103,25 @@ def tela_jogo(janela, animacoes):
                 level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador, grupo_projeteis)
 
             for inimigo in grupo_inimigos:
-                if inimigo.esta_morto and not inimigo.xp_entregue:
-                    if hasattr(inimigo, 'xp_drop'):
-                        soldado.ganhar_xp(inimigo.xp_drop)
-                        inimigo.xp_entregue = True
+                if inimigo.esta_morto and not inimigo.xp_entregue and hasattr(inimigo, 'xp_drop'):
+                    soldado.ganhar_xp(inimigo.xp_drop)
+                    inimigo.xp_entregue = True
 
         janela.fill(FUNDO_BRANCO)
+
+        # ✅ Renderiza mapa pré-renderizado completo
+        janela.blit(mapa.surface_completa, (-int(camera.offset.x), -int(camera.offset.y)))
 
         if estado_jogo == JOGANDO:
             for entidade in grupo_inimigos:
                 janela.blit(entidade.image, camera.aplicar(entidade))
 
             janela.blit(soldado.image, camera.aplicar(soldado))
-
             for projetil in grupo_projeteis:
                 janela.blit(projetil.image, camera.aplicar(projetil))
 
             soldado.draw_hud(janela)
             soldado.draw_hp_bar(janela, camera)
-
             for inimigo in grupo_inimigos:
                 inimigo.draw_hp_bar(janela, camera)
 
@@ -129,11 +130,13 @@ def tela_jogo(janela, animacoes):
 
         elif estado_jogo == GAME_OVER:
             texto_game_over = fonte.render("GAME OVER", True, BRANCO)
-            janela.blit(texto_game_over, texto_game_over.get_rect(center=(LARGURA // 2, ALTURA // 2 - 50)))
+            texto_rect = texto_game_over.get_rect(center=(LARGURA // 2, ALTURA // 2 - 50))
+            janela.blit(texto_game_over, texto_rect)
 
             pygame.draw.rect(janela, BRANCO, (300, 400, 200, 50))
             texto_reiniciar = fonte.render("Reiniciar", True, PRETO)
-            janela.blit(texto_reiniciar, texto_reiniciar.get_rect(center=(LARGURA // 2, 425)))
+            texto_reiniciar_rect = texto_reiniciar.get_rect(center=(LARGURA // 2, 425))
+            janela.blit(texto_reiniciar, texto_reiniciar_rect)
 
         pygame.display.flip()
 
