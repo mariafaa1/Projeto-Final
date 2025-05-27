@@ -3,7 +3,7 @@ from pytmx.util_pygame import load_pygame
 import pytmx
 
 class TileMap:
-    def __init__(self, filename, zoom=1):
+    def __init__(self, filename, zoom=3):
         self.tmxdata = load_pygame(filename)
         self.collision_rects = []
         self.spawn_points = {}
@@ -12,7 +12,6 @@ class TileMap:
         tile_width = int(self.tmxdata.tilewidth * self.zoom)
         tile_height = int(self.tmxdata.tileheight * self.zoom)
 
-        # Criar surface completa do mapa
         self.surface_completa = pg.Surface(
             (self.tmxdata.width * tile_width,
              self.tmxdata.height * tile_height)
@@ -63,3 +62,6 @@ class TileMap:
             self.tmxdata.width * self.tmxdata.tilewidth * self.zoom,
             self.tmxdata.height * self.tmxdata.tileheight * self.zoom
         )
+
+    def render(self, surface, camera):
+        surface.blit(self.surface_completa, (-int(camera.offset.x), -int(camera.offset.y)))

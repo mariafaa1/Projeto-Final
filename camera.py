@@ -1,3 +1,4 @@
+# camera.py
 import pygame as pg
 
 class Camera:
@@ -11,10 +12,10 @@ class Camera:
         self.limites = pg.Rect(0, 0, mapa_width - self.largura_jogo, mapa_height - self.altura_jogo)
 
     def aplicar(self, entidade):
-        return entidade.rect.move(-int(self.offset.x), -int(self.offset.y))  # ✅ Arredondado!
+        return entidade.rect.move(-int(self.offset.x), -int(self.offset.y))
 
     def aplicar_rect(self, rect):
-        return rect.move(-int(self.offset.x), -int(self.offset.y))  # ✅ Arredondado!
+        return rect.move(-int(self.offset.x), -int(self.offset.y))
 
     def update(self, alvo):
         x = alvo.rect.centerx - self.largura_jogo // 2
@@ -25,3 +26,12 @@ class Camera:
             y = max(self.limites.top, min(y, self.limites.bottom))
 
         self.offset += (pg.Vector2(x, y) - self.offset) * 0.1
+
+    def configurar_limites(self, mapa_width, mapa_height):
+        # Limitar o offset para não ultrapassar o mapa
+        self.limites = pg.Rect(
+            0, 
+            0, 
+            mapa_width - self.largura_jogo, 
+            mapa_height - self.altura_jogo
+        )
