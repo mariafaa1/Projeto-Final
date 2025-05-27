@@ -18,6 +18,8 @@ class Soldado(pygame.sprite.Sprite):
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(topleft=(50, ALTURA // 2))
+        self.hitbox_rect = pygame.Rect(0, 0, 30, 50) 
+        self.hitbox_rect.center = self.rect.center
         self.dano_ataque_leve = DANO_ATAQUE_LEVE 
         self.dano_ataque_pesado = DANO_ATAQUE_PESADO
         self.dano_arco = DANO_ARCO
@@ -361,24 +363,30 @@ class Soldado(pygame.sprite.Sprite):
         self.dano_ataque_pesado *= 3
         self.dano_arco *= 3
     
+    
     def verificar_colisao(self, tilemap):
-        # Movimento horizontal
-        self.rect.x += self.vel_x
+        original_x = self.hitbox_rect.x
+        original_y = self.hitbox_rect.y
+    
+        self.hitbox_rect.x += self.vel_x
         for rect in tilemap.collision_rects:
-            if self.rect.colliderect(rect):
-                if self.vel_x > 0:  # Movendo para direita
-                    self.rect.right = rect.left
-                elif self.vel_x < 0:  # Movendo para esquerda
-                    self.rect.left = rect.right
-
-        # Movimento vertical
-        self.rect.y += self.vel_y
+            if self.hitbox_rect.colliderect(rect):
+                if self.vel_x > 0:  # Direita
+                    self.hitbox_rect.right = rect.left
+                elif self.vel_x < 0:  # Esquerda
+                    self.hitbox_rect.left = rect.right
+                break
+    
+        self.hitbox_rect.y += self.vel_y
         for rect in tilemap.collision_rects:
-            if self.rect.colliderect(rect):
-                if self.vel_y > 0:  # Movendo para baixo
-                    self.rect.bottom = rect.top
-                elif self.vel_y < 0:  # Movendo para cima
-                    self.rect.top = rect.bottom
+            if self.hitbox_rect.colliderect(rect):
+                if self.vel_y > 0:  # Baixo
+                    self.hitbox_rect.bottom = rect.top
+                elif self.vel_y < 0:  # Cima
+                    self.hitbox_rect.top = rect.bottom
+                break
+    
+        self.rect.center = self.hitbox_rect.center
     
 class Projetil(pygame.sprite.Sprite):
     def __init__(self, position, direcao_x, direcao_y, grupo_inimigos, dano):

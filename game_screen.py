@@ -9,12 +9,19 @@ from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura
 from inimigos_codigos.Inimigos_mapa2.esqueleto_arqueiro import EsqueletoArqueiro
 from camera import Camera
 from tilemap import TileMap
+import pygame as pg
 
 def processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis):
     for obj in tilemap.tmxdata.objects:
         if obj.name == 'spawn_soldado':
-            soldado.rect.topleft = (obj.x * tilemap.zoom, obj.y * tilemap.zoom)
-
+            spawn_rect = pg.Rect(
+                obj.x * tilemap.zoom,
+                obj.y * tilemap.zoom,
+                obj.width * tilemap.zoom,
+                obj.height * tilemap.zoom
+            )
+            soldado.rect.center = spawn_rect.center
+            soldado.hitbox_rect.center = spawn_rect.center
         elif obj.name == 'spawn_orc':
             orc = OrcNormal(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
             grupo_inimigos.add(orc)
