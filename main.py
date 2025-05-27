@@ -1,14 +1,16 @@
 import pygame
-from assets import carregar_recursos
-from game_screen import tela_jogo
 from config import LARGURA, ALTURA
+from assets import carregar_animacoes
+from game_screen import tela_jogo
 
 pygame.init()
 janela = pygame.display.set_mode((LARGURA, ALTURA))
-pygame.display.set_caption("Duelos Pixelados")
+pygame.display.set_caption("Jogo de Fantasia - Soldado")
 
-recursos = carregar_recursos()
+animacoes = carregar_animacoes()
 
-tela_jogo(janela, recursos)
+reiniciar = True
+while reiniciar:
+    reiniciar = tela_jogo(janela, animacoes)  # A função retorna True se o jogador quiser reiniciar
 
 pygame.quit()
