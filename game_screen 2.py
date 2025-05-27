@@ -23,7 +23,8 @@ def tela_jogo(janela, animacoes):
     executando = True
 
     while executando:
-        dt = relogio.tick(FPS) / 1000  # Delta time em segundos
+        relogio.tick(FPS)
+        agora = pygame.time.get_ticks()
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -37,10 +38,10 @@ def tela_jogo(janela, animacoes):
 
         if estado_jogo == JOGANDO:
             grupo_jogador.update(teclas)
-            grupo_inimigos.update(dt)  # Passando dt aqui
+            grupo_inimigos.update()
             grupo_projeteis.update()
 
-            if soldado.animacao_morte_concluida and (pygame.time.get_ticks() - soldado.tempo_morte_concluida >= 3000):
+            if soldado.animacao_morte_concluida and (agora - soldado.tempo_morte_concluida >= 3000):
                 estado_jogo = GAME_OVER
 
         janela.fill(FUNDO_BRANCO)
@@ -65,5 +66,3 @@ def tela_jogo(janela, animacoes):
             janela.blit(texto_reiniciar, texto_reiniciar_rect)
 
         pygame.display.flip()
-
-    return False  # Retorna False se o jogo não for reiniciado
