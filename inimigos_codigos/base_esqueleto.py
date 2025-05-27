@@ -18,7 +18,7 @@ class InimigoBase(pygame.sprite.Sprite):
         self.hp_atual = hp_max
         self.velocidade = velocidade
         self.alvo = alvo
-        self.tempo_animacao = 100
+        self.tempo_animacao = 200
         self.ultimo_update = pygame.time.get_ticks()
         self.esta_morto = False
         self.esta_atacando = False
@@ -41,19 +41,20 @@ class InimigoBase(pygame.sprite.Sprite):
         def carregar_frames(pasta, prefixo, inicio, fim):
             frames = []
             for i in range(inicio, fim + 1):
-                caminho = os.path.join(pasta, f"{prefixo}{i}.png.png")
+                caminho = os.path.join(pasta, f"{prefixo}{i}.png")
                 img = pygame.image.load(caminho).convert_alpha()
+                img = pygame.transform.scale(img, (img.get_width() *4, (img.get_height() *4)))
                 frames.append(img)
             return frames
 
         base_path = "assets/inimigos/esqueleto"
 
-        animacoes['parado'] = carregar_frames(os.path.join(base_path, "esqueleto_parado"), "Skeleton-Attack01-", 10, 15)
-        animacoes['andando'] = carregar_frames(os.path.join(base_path, "andando"), "Skeleton-Attack01-", 2, 9)
-        animacoes['ataque1'] = carregar_frames(os.path.join(base_path, "ataque1"), "Skeleton-Attack01-", 24, 30)
-        animacoes['ataque2'] = carregar_frames(os.path.join(base_path, "ataque2"), "Skeleton-Attack01-", 1, 6)
-        animacoes['dano'] = carregar_frames(os.path.join(base_path, "esqueleto_dano"), "Skeleton-Attack01-", 16, 19)
-        animacoes['morrendo'] = carregar_frames(os.path.join(base_path, "esqueleto_morte"), "Skeleton-Attack01-", 20, 23)
+        animacoes['parado'] = carregar_frames(os.path.join(base_path, "esqueleto_parado"), "Idle_", 1, 4)
+        animacoes['andando'] = carregar_frames(os.path.join(base_path, "andando"), "Andar_", 1, 8)
+        animacoes['ataque1'] = carregar_frames(os.path.join(base_path, "ataque1"), "Ataque1_", 1, 6)
+        animacoes['ataque2'] = carregar_frames(os.path.join(base_path, "ataque2"), "Ataque2_", 1, 7)
+        animacoes['dano'] = carregar_frames(os.path.join(base_path, "esqueleto_dano"), "Machucar_", 1, 4)
+        animacoes['morrendo'] = carregar_frames(os.path.join(base_path, "esqueleto_morte"), "Morte_", 1, 4)
 
         return animacoes
 

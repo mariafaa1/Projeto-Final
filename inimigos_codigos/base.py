@@ -18,7 +18,7 @@ class InimigoBase(pygame.sprite.Sprite):
         self.hp_atual = hp_max
         self.velocidade = velocidade
         self.alvo = alvo
-        self.tempo_animacao = 100
+        self.tempo_animacao = 150
         self.ultimo_update = pygame.time.get_ticks()
         self.esta_morto = False
         self.esta_atacando = False
@@ -39,37 +39,43 @@ class InimigoBase(pygame.sprite.Sprite):
         # Carregar frames parado
         pasta_parado = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_parado')
         for i in range(6):
-            img = pygame.image.load(os.path.join(pasta_parado, f'orc_parado{i}.png')).convert_alpha()
+            img = pygame.image.load(os.path.join(pasta_parado, f'Idle_{i+1}.png')).convert_alpha()
+            img = pygame.transform.scale(img, (img.get_width() *4, (img.get_height() *4)))
             animacoes['parado'].append(img)
 
         # Carregar frames andando
         pasta_andando = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_andando')
         for i in range(6):
-            img = pygame.image.load(os.path.join(pasta_andando, f'orc_andando{i}.png')).convert_alpha()
+            img = pygame.image.load(os.path.join(pasta_andando, f'Andar_{i+1}.png')).convert_alpha()
+            img = pygame.transform.scale(img, (img.get_width() *4, (img.get_height() *4)))
             animacoes['andando'].append(img)
 
         # Carregar frames morrendo
         pasta_morrendo = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_morrendo')
-        for i in range(16, 20):
-            img = pygame.image.load(os.path.join(pasta_morrendo, f'Orc-Attack01-{i}.png.png')).convert_alpha()
+        for i in range(4):
+            img = pygame.image.load(os.path.join(pasta_morrendo, f'Morte_{i+1}.png')).convert_alpha()
+            img = pygame.transform.scale(img, (img.get_width() *4, (img.get_height() *4)))
             animacoes['morrendo'].append(img)
 
         # Carregar frames ataque1
         pasta_ataque1 = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_ataque1')
-        for i in range(20, 26):
-            img = pygame.image.load(os.path.join(pasta_ataque1, f'Orc-Attack01-{i}.png.png')).convert_alpha()
+        for i in range(6):
+            img = pygame.image.load(os.path.join(pasta_ataque1, f'Ataque1_{i+1}.png')).convert_alpha()
+            img = pygame.transform.scale(img, (img.get_width() *4, (img.get_height() *4)))
             animacoes['ataque1'].append(img)
 
         # Carregar frames ataque2
         pasta_ataque2 = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_ataque_2')
         for i in range(6):
-            img = pygame.image.load(os.path.join(pasta_ataque2, f'orc{i}.png')).convert_alpha()
+            img = pygame.image.load(os.path.join(pasta_ataque2, f'Ataque2_{i+1}.png')).convert_alpha()
+            img = pygame.transform.scale(img, (img.get_width() *4, (img.get_height() *4)))
             animacoes['ataque2'].append(img)
 
         # Carregar frames dano
         pasta_dano = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_dano')
-        for i in range(1, 5):
-            img = pygame.image.load(os.path.join(pasta_dano, f'morte{i}.png')).convert_alpha()
+        for i in range(4):
+            img = pygame.image.load(os.path.join(pasta_dano, f'Machucar_{i+1}.png')).convert_alpha()
+            img = pygame.transform.scale(img, (img.get_width() *4, (img.get_height() *4)))
             animacoes['dano'].append(img)
 
         return animacoes

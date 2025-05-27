@@ -11,19 +11,27 @@ from inimigos_codigos.orc_normal import OrcNormal
 from inimigos_codigos.esqueleto import Esqueleto
 from inimigos_codigos.boss1.base_boss1 import BossBase
 
+def debug_draw_hitboxes(surface, grupos, cor=(255, 0, 0), espessura=2):
+    """Desenha hitboxes de todos os sprites nos grupos especificados"""
+    for grupo in grupos:
+        for sprite in grupo:
+            pygame.draw.rect(surface, cor, sprite.rect, espessura)
+            centro = sprite.rect.center
+            pygame.draw.circle(surface, (0, 255, 0), centro, 3)
+
 class LevelManager:
     def __init__(self):
         self.fase_atual = 1
         self.config_fases = {
             1: {
-                'inimigos_normais': 5,
+                'inimigos_normais': 2,
                 'boss': {
                     'classe': BossBase,
                     'pos': (LARGURA//2, ALTURA//2)
                 }
             },
             2: {
-                'inimigos_normais': 8,
+                'inimigos_normais': 2,
                 'boss': {
                     'classe': BossBase,
                     'pos': (LARGURA//2, ALTURA//2)
@@ -69,6 +77,7 @@ def tela_jogo(janela, animacoes):
     estado_jogo = JOGANDO
     fonte = pygame.font.Font(CAMINHO_FONTE, FONTE_TAMANHO)
     executando = True
+    debug_hitboxes = False
 
     while executando:
         dt = relogio.tick(FPS) / 1000
@@ -80,6 +89,9 @@ def tela_jogo(janela, animacoes):
             elif evento.type == pygame.MOUSEBUTTONDOWN and estado_jogo == GAME_OVER:
                 if 300 <= pygame.mouse.get_pos()[0] <= 500 and 400 <= pygame.mouse.get_pos()[1] <= 450:
                     return True
+            elif evento.type == pygame.KEYDOWN:
+                if evento.key == pygame.K_u:
+                    debug_hitboxes = not debug_hitboxes
 
         # Atualizações
         if estado_jogo == JOGANDO:
@@ -111,9 +123,16 @@ def tela_jogo(janela, animacoes):
         janela.fill(FUNDO_BRANCO)
         
         if estado_jogo == JOGANDO:
+            # Desenhar todos os elementos
             grupo_jogador.draw(janela)
-            grupo_inimigos.draw(janela)
             grupo_projeteis.draw(janela)
+            
+            # Desenhar inimigos com renderização customizada para o boss
+            for inimigo in grupo_inimigos:
+                if isinstance(inimigo, BossBase):
+                    inimigo.draw(janela)
+                else:
+                    janela.blit(inimigo.image, inimigo.rect)
             
             # UI
             soldado.draw_hud(janela)
@@ -121,6 +140,10 @@ def tela_jogo(janela, animacoes):
                 sprite.draw_hp_bar(janela)
             for inimigo in grupo_inimigos:
                 inimigo.draw_hp_bar(janela)
+            
+            # Debug de hitboxes
+            if debug_hitboxes:
+                debug_draw_hitboxes(janela, [grupo_jogador, grupo_inimigos, grupo_projeteis])
                 
         elif estado_jogo == GAME_OVER:
             texto_game_over = fonte.render("GAME OVER", True, BRANCO)
