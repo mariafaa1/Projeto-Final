@@ -1,4 +1,5 @@
 import pygame
+from camera import Camera
 from config import (
     LARGURA, ALTURA, VELOCIDADE_JOGADOR, VELOCIDADE_PROJETIL,
     TEMPO_COOLDOWN_ATAQUE_PESADO, TEMPO_COOLDOWN_ARCO, TEMPO_COOLDOWN_ATAQUE_LEVE,
@@ -14,7 +15,7 @@ class Soldado(pygame.sprite.Sprite):
         self.estado = 'parado'
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
-        self.rect = self.image.get_rect(center=(LARGURA//2, ALTURA//2))
+        self.rect = self.image.get_rect(topleft=(50, ALTURA // 2))
         self.dano_ataque_leve = DANO_ATAQUE_LEVE 
         self.dano_ataque_pesado = DANO_ATAQUE_PESADO
         self.dano_arco = DANO_ARCO
@@ -254,16 +255,27 @@ class Soldado(pygame.sprite.Sprite):
                 self.indice_dano = 0
                 self.ultimo_update_dano = pygame.time.get_ticks()
 
-    def draw_hp_bar(self, tela):
-        if not self.esta_morto:
-            barra_x = self.rect.centerx - LARGURA_BARRA // 2
-            barra_y = self.rect.centery + POSICAO_BARRA_OFFSET_Y
+    def draw_hp_bar(self, tela, camera):
+        if not self.esta_morto and not getattr(self, 'animacao_morte_concluida', False):
+            offset_extra_y = -10  # ajuste este valor conforme necessário para subir/descer a barra
+            barra_x = self.rect.centerx - (LARGURA_BARRA // 2)
+            barra_y = self.rect.centery + POSICAO_BARRA_OFFSET_Y + offset_extra_y
             proporcao_hp = self.hp_atual / self.hp_max
             largura_atual = int(LARGURA_BARRA * proporcao_hp)
-            pygame.draw.rect(tela, COR_HP_PERDIDO, (barra_x, barra_y, LARGURA_BARRA, ALTURA_BARRA))
-            pygame.draw.rect(tela, COR_HP_ATUAL, (barra_x, barra_y, largura_atual, ALTURA_BARRA))
-            if BORDA_HP:
-                pygame.draw.rect(tela, COR_BORDA, (barra_x, barra_y, LARGURA_BARRA, ALTURA_BARRA), 1)
+
+            barra_rect = pygame.Rect(barra_x, barra_y, largura_atual, ALTURA_BARRA)
+            fundo_rect = pygame.Rect(barra_x, barra_y, LARGURA_BARRA, ALTURA_BARRA)
+
+            barra_rect_camera = camera.aplicar_rect(barra_rect)
+            fundo_rect_camera = camera.aplicar_rect(fundo_rect)
+
+            pygame.draw.rect(tela, COR_HP_PERDIDO, fundo_rect_camera, border_radius=2)
+
+    
+            if largura_atual > 0:  
+                pygame.draw.rect(tela, COR_HP_ATUAL, barra_rect_camera, border_radius=2)
+                pygame.draw.rect(tela, (255, 255, 255), fundo_rect_camera, width=1, border_radius=2)
+
 
     def draw(self, tela):
         tela.blit(self.image, self.rect)

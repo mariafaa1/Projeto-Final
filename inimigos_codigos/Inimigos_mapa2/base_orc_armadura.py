@@ -139,24 +139,42 @@ class InimigoBase(pygame.sprite.Sprite):
                 self.estado = 'morrendo'
                 self.indice_animacao = 0
                 self.animacao_morte_concluida = False
-
-    def draw_hp_bar(self, tela):
-        if not self.esta_morto and not self.animacao_morte_concluida:
+    
+    def draw_hp_bar(self, tela, camera):
+        if not self.esta_morto and not getattr(self, 'animacao_morte_concluida', False):
+            offset_extra_y = -10  # ajuste conforme necessário
             barra_x = self.rect.centerx - (LARGURA_BARRA // 2)
-            barra_y = self.rect.centery + POSICAO_BARRA_OFFSET_Y
+            barra_y = self.rect.centery + POSICAO_BARRA_OFFSET_Y + offset_extra_y
+
+        # --- Barra de Vida ---
             proporcao_hp = self.hp_atual / self.hp_max
-            largura_atual = int(LARGURA_BARRA * proporcao_hp)
-            pygame.draw.rect(tela, COR_HP_PERDIDO, (barra_x, barra_y, LARGURA_BARRA, ALTURA_BARRA))
-            pygame.draw.rect(tela, COR_HP_ATUAL, (barra_x, barra_y, largura_atual, ALTURA_BARRA))
-            
-            if self.escudo_ativo:
-                escudo_ratio = self.escudo_hp / self.escudo_hp_max
-                pygame.draw.rect(tela, (70, 130, 200), (
-                    barra_x,
-                    barra_y - 10,
-                    LARGURA_BARRA * escudo_ratio,
-                    5
-                ))
-            
-            if BORDA_HP:
-                pygame.draw.rect(tela, COR_BORDA, (barra_x, barra_y, LARGURA_BARRA, ALTURA_BARRA), 1)
+            largura_hp = int(LARGURA_BARRA * proporcao_hp)
+            fundo_hp = pygame.Rect(barra_x, barra_y, LARGURA_BARRA, ALTURA_BARRA)
+            barra_hp = pygame.Rect(barra_x, barra_y, largura_hp, ALTURA_BARRA)
+
+            fundo_hp_cam = camera.aplicar_rect(fundo_hp)
+            barra_hp_cam = camera.aplicar_rect(barra_hp)
+
+            pygame.draw.rect(tela, COR_HP_PERDIDO, fundo_hp_cam, border_radius=2)
+            if largura_hp > 0:
+                pygame.draw.rect(tela, COR_HP_ATUAL, barra_hp_cam, border_radius=2)
+            pygame.draw.rect(tela, (255, 255, 255), fundo_hp_cam, width=1, border_radius=2)
+
+        # --- Barra de Escudo (acima da barra de vida) ---
+            if self.escudo_hp > 0:
+                offset_escudo_y = -12  # coloca a barra de escudo acima da de vida
+                escudo_y = barra_y + offset_escudo_y
+
+                proporcao_escudo = self.escudo_hp / self.escudo_hp_max
+                largura_escudo = int(LARGURA_BARRA * proporcao_escudo)
+
+                fundo_escudo = pygame.Rect(barra_x, escudo_y, LARGURA_BARRA, 7)  # altura menor para a barra de escudo
+                barra_escudo = pygame.Rect(barra_x, escudo_y, largura_escudo, 7)
+
+                fundo_escudo_cam = camera.aplicar_rect(fundo_escudo)
+                barra_escudo_cam = camera.aplicar_rect(barra_escudo)
+
+                cor_escudo = (70, 130, 200)  # azul clássico para escudo
+                pygame.draw.rect(tela, (30, 30, 30), fundo_escudo_cam, border_radius=2)
+                pygame.draw.rect(tela, cor_escudo, barra_escudo_cam, border_radius=2)
+                pygame.draw.rect(tela, (255, 255, 255), fundo_escudo_cam, width=1, border_radius=2)
