@@ -1,3 +1,8 @@
+#tilemap.py
+import pygame as pg
+from pytmx.util_pygame import load_pygame
+import pytmx
+
 import pygame as pg
 from pytmx.util_pygame import load_pygame
 import pytmx
@@ -20,12 +25,24 @@ class TileMap:
 
         for layer in self.tmxdata.layers:
             if isinstance(layer, pytmx.TiledTileLayer):
-                if layer.name.lower() != "colisão":
-                    self.render_tile_layer(layer, tile_width, tile_height)
-                else:
-                    print(f"Layer '{layer.name}' ignorada na renderização.")
+                self.render_tile_layer(layer, tile_width, tile_height)
             elif isinstance(layer, pytmx.TiledObjectGroup):
-                self.process_object_layer(layer)
+                if layer.name.lower() == "colisão":
+                    self.process_collision_objects(layer)
+                else:
+                    self.process_object_layer(layer)
+
+    def process_collision_objects(self, layer):
+        """Processa objetos de colisão da camada 'colisão'"""
+        for obj in layer:
+            collision_rect = pg.Rect(
+                obj.x * self.zoom,
+                obj.y * self.zoom,
+                obj.width * self.zoom,
+                obj.height * self.zoom
+            )
+            self.collision_rects.append(collision_rect)
+            print(f"Colisão carregada: {collision_rect}")
 
     def render_tile_layer(self, layer, tile_width, tile_height):
         for x, y, tile in layer.tiles():

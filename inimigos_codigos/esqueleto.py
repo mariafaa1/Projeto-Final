@@ -1,3 +1,4 @@
+#esqueleto.py
 import pygame
 import random
 from inimigos_codigos.base_esqueleto import InimigoBase

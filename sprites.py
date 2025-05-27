@@ -1,3 +1,4 @@
+#sprites.py
 import pygame
 from camera import Camera
 from config import (
@@ -7,6 +8,7 @@ from config import (
     COR_HP_ATUAL, COR_HP_PERDIDO, BORDA_HP, COR_BORDA, TESTE_MANUAL_DANO,
     DANO_ATAQUE_LEVE, DANO_ATAQUE_PESADO, DANO_ARCO
 )
+from tilemap import TileMap
 
 class Soldado(pygame.sprite.Sprite):
     def __init__(self, animacoes, grupo_inimigos, grupo_projeteis):
@@ -81,7 +83,8 @@ class Soldado(pygame.sprite.Sprite):
 
         self.processar_movimento_ataque(teclas, agora)
         self.processar_dano(agora)
-        self.processar_animacoes(agora)
+        self.processar_animacoes(agora, teclas)
+
 
     def processar_morte(self, agora):
         if not self.animacao_morte_ativa:
@@ -105,31 +108,32 @@ class Soldado(pygame.sprite.Sprite):
         self.image = frame
 
     def processar_movimento_ataque(self, teclas, agora):
-        self.vel_x = 0 
-        self.vel_y = 0
+        self.vel_x = 0  # Resetar velocidades
+        self.vel_y = 0  # Resetar velocidades
         movimento = False
         novo_estado = 'parado'
         
-        # Controles de movimento
+        # Controles de movimento (atualizado para usar velocidades)
         if teclas[pygame.K_a]:
-            self.rect.x -= VELOCIDADE_JOGADOR
+            self.vel_x = -VELOCIDADE_JOGADOR
             novo_estado = 'andando'
             self.virado_para_esquerda = True
             movimento = True
         if teclas[pygame.K_d]:
-            self.rect.x += VELOCIDADE_JOGADOR
+            self.vel_x = VELOCIDADE_JOGADOR
             novo_estado = 'andando'
             self.virado_para_esquerda = False
             movimento = True
         if teclas[pygame.K_w]:
-            self.rect.y -= VELOCIDADE_JOGADOR
+            self.vel_y = -VELOCIDADE_JOGADOR
             novo_estado = 'andando'
             movimento = True
         if teclas[pygame.K_s]:
-            self.rect.y += VELOCIDADE_JOGADOR
+            self.vel_y = VELOCIDADE_JOGADOR
             novo_estado = 'andando'
             movimento = True
 
+        # Aplicar movimento (a colisão será verificada em verificar_colisao)
         self.rect.x += self.vel_x
         self.rect.y += self.vel_y
 
@@ -170,7 +174,7 @@ class Soldado(pygame.sprite.Sprite):
                     self.animacao_dano_ativa = False
                     self.indice_dano = 0
 
-    def processar_animacoes(self, agora):
+    def processar_animacoes(self, agora, teclas):
         # Atualização normal da animação
         if not self.executando_ataque and agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
@@ -179,7 +183,7 @@ class Soldado(pygame.sprite.Sprite):
 
         # Processamento especial para ataques
         if self.executando_ataque:
-            self.processar_animacao_ataque(agora)
+            self.processar_animacao_ataque(agora, teclas)
 
         # Seleção do frame
         if self.animacao_dano_ativa:
@@ -197,33 +201,58 @@ class Soldado(pygame.sprite.Sprite):
             frame = pygame.transform.flip(frame, True, False)
         self.image = frame
 
-    def processar_animacao_ataque(self, agora):
+    def processar_animacao_ataque(self, agora, teclas):
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
-        
+
             if self.indice_animacao < len(self.animacoes[self.estado]) - 1:
                 self.indice_animacao += 1
             else:
                 self.indice_animacao = len(self.animacoes[self.estado]) - 1
 
-            # Aplicar dano/projétil no frame especificado
+        # Aplicar dano/projétil no frame especificado
             if self.indice_animacao == self.ataques[self.estado]['frame_dano']:
                 if self.estado == 'ataque_arco':
-                    self.disparar_flecha()
+                    self.disparar_flecha(teclas)  # Agora passando teclas como parâmetro
                 else:
                     dano = self.dano_ataque_leve if self.estado == 'ataque_leve' else self.dano_ataque_pesado
                     self.aplicar_dano_corpo_a_corpo(dano)
 
-            # Finalizar animação
+        # Finalizar animação
             if self.indice_animacao >= len(self.animacoes[self.estado]) - 1:
                 self.indice_animacao = 0
                 self.executando_ataque = False
                 self.estado = 'parado'
 
-    def disparar_flecha(self):
+    def disparar_flecha(self, teclas):
         deslocamento_y = self.ataques['ataque_arco']['deslocamento_flecha_y']
-        centro_personagem = (self.rect.centerx, self.rect.centery + deslocamento_y)
-        novo_proj = Projetil(centro_personagem, self.virado_para_esquerda, self.grupo_inimigos, self.dano_arco)
+        centro = (self.rect.centerx, self.rect.centery + deslocamento_y)
+        
+        # Determinar direção
+        dir_x = -1 if self.virado_para_esquerda else 1
+        dir_y = 0
+        
+        # Verificar combinações de teclas
+        if teclas[pygame.K_w]:
+            dir_y = -1  # Cima
+        if teclas[pygame.K_s]:
+            dir_y = 1   # Baixo
+        if teclas[pygame.K_e] and self.virado_para_esquerda:
+            dir_y = -1  # Diagonal superior esquerda
+        if teclas[pygame.K_x] and self.virado_para_esquerda:
+            dir_y = 1   # Diagonal inferior esquerda
+        if teclas[pygame.K_e] and not self.virado_para_esquerda:
+            dir_y = -1  # Diagonal superior direita
+        if teclas[pygame.K_x] and not self.virado_para_esquerda:
+            dir_y = 1  # Diagonal inferior direita
+        
+        # Normalizar direção para velocidade constante
+        if dir_x != 0 and dir_y != 0:
+            fator = 0.7071  # 1/√2 para movimento diagonal
+            dir_x *= fator
+            dir_y *= fator
+        
+        novo_proj = Projetil(centro, dir_x, dir_y, self.grupo_inimigos, self.dano_arco)
         self.grupo_projeteis.add(novo_proj)
         self.disparar_flecha_pendente = False
 
@@ -331,31 +360,72 @@ class Soldado(pygame.sprite.Sprite):
         self.dano_ataque_leve *= 3  
         self.dano_ataque_pesado *= 3
         self.dano_arco *= 3
+    
+    def verificar_colisao(self, tilemap):
+        # Movimento horizontal
+        self.rect.x += self.vel_x
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.vel_x > 0:  # Movendo para direita
+                    self.rect.right = rect.left
+                elif self.vel_x < 0:  # Movendo para esquerda
+                    self.rect.left = rect.right
+
+        # Movimento vertical
+        self.rect.y += self.vel_y
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.vel_y > 0:  # Movendo para baixo
+                    self.rect.bottom = rect.top
+                elif self.vel_y < 0:  # Movendo para cima
+                    self.rect.top = rect.bottom
+    
 class Projetil(pygame.sprite.Sprite):
-    def __init__(self, position, virado_para_esquerda, grupo_inimigos, dano):
+    def __init__(self, position, direcao_x, direcao_y, grupo_inimigos, dano):
         super().__init__()
         try:
             self.image = pygame.image.load('assets/projetil_arco/flecha.png').convert_alpha()
-            if virado_para_esquerda:
+            
+            # Rotacionar a flecha com base na direção
+            angulo = 0
+            if direcao_y == -1:
+                angulo = 90 if direcao_x == 0 else 45  # Para cima ou diagonal superior
+            elif direcao_y == 1:
+                angulo = -90 if direcao_x == 0 else -45  # Para baixo ou diagonal inferior
+            
+            if direcao_x == -1:  # Esquerda
+                angulo += 180
                 self.image = pygame.transform.flip(self.image, True, False)
+            
+            self.image = pygame.transform.rotate(self.image, angulo)
+            
             self.rect = self.image.get_rect(center=position)
         except Exception as e:
             print(f"Erro ao carregar flecha: {e}")
             self.kill()
+        
         self.velocidade = VELOCIDADE_PROJETIL
-        self.direcao = -1 if virado_para_esquerda else 1
+        self.direcao_x = direcao_x
+        self.direcao_y = direcao_y
         self.grupo_inimigos = grupo_inimigos
         self.dano = dano
-        self.mask = pygame.mask.from_surface(self.image)  # Mask para colisão precisa
+        self.mask = pygame.mask.from_surface(self.image)
 
-    def update(self):
-        self.rect.x += self.velocidade * self.direcao
+
+
+    def update(self, tilemap):
+        # Movimento
+        self.rect.x += self.velocidade * self.direcao_x
+        self.rect.y += self.velocidade * self.direcao_y
         
-        # Verificação de colisão com máscara
+        # Colisão com inimigos
         for inimigo in pygame.sprite.spritecollide(self, self.grupo_inimigos, False, pygame.sprite.collide_mask):
             inimigo.receber_dano(self.dano)
             self.kill()
-            break
+            return
         
-        if self.rect.right < -50 or self.rect.left > LARGURA + 50:
-            self.kill()
+        # Colisão com o mapa
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                self.kill()
+                return

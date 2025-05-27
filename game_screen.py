@@ -1,3 +1,4 @@
+#game_screen.py
 import pygame
 from config import FPS, FUNDO_BRANCO, JOGANDO, GAME_OVER
 from sprites import Soldado
@@ -65,7 +66,8 @@ def tela_jogo(janela, animacoes_soldado):
         teclas = pygame.key.get_pressed()
         soldado.update(teclas)
         grupo_inimigos.update(pygame.time.get_ticks())
-        grupo_projeteis.update()
+        grupo_projeteis.update(tilemap)
+        soldado.verificar_colisao(tilemap)
 
         for inimigo in grupo_inimigos:
             if inimigo.esta_morto and not inimigo.xp_entregue:
