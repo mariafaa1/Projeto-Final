@@ -39,7 +39,7 @@ class Soldado(pygame.sprite.Sprite):
             'ataque_arco': {
                 'frame_dano': len(animacoes['ataque_arco']) - 2,  # Penúltimo frame (automatico)
                 'cooldown': TEMPO_COOLDOWN_ARCO,
-                'deslocamento_flecha_y': 15  # Ajuste vertical do ponto de disparo
+                'deslocamento_flecha_y': 5  # Ajuste vertical do ponto de disparo
             }
         }
 
