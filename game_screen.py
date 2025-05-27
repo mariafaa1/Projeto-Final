@@ -64,10 +64,14 @@ def tela_jogo(janela, animacoes_soldado):
                 estado = GAME_OVER
 
         teclas = pygame.key.get_pressed()
+        
         soldado.update(teclas)
         grupo_inimigos.update(pygame.time.get_ticks())
         grupo_projeteis.update(tilemap)
+
         soldado.verificar_colisao(tilemap)
+        for inimigo in grupo_inimigos:
+            inimigo.verificar_colisao(tilemap)
 
         for inimigo in grupo_inimigos:
             if inimigo.esta_morto and not inimigo.xp_entregue:

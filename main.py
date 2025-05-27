@@ -17,7 +17,7 @@ def main():
     animacoes = carregar_animacoes()
 
     # Loop principal do jogo
-    reiniciar = Tue
+    reiniciar = True
     while reiniciar:
         reiniciar = tela_jogo(janela, animacoes)
 

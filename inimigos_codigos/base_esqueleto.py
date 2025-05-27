@@ -75,6 +75,8 @@ class InimigoBase(pygame.sprite.Sprite):
             self.estado = 'parado'
 
     def perseguir_alvo(self):
+        self.velocidade_x = 0  # Reinicia as velocidades a cada frame
+        self.velocidade_y = 0  #
         if not self.esta_morto and self.estado != 'dano' and self.alvo and not self.alvo.esta_morto:
             dx = self.alvo.rect.centerx - self.rect.centerx
             dy = self.alvo.rect.centery - self.rect.centery
@@ -84,8 +86,12 @@ class InimigoBase(pygame.sprite.Sprite):
                 self.estado = 'andando'
                 if dx != 0:
                     self.direita = dx > 0
-                self.rect.x += (dx / distancia) * self.velocidade
-                self.rect.y += (dy / distancia) * self.velocidade
+                # Calcula a velocidade em X e Y
+                self.velocidade_x = (dx / distancia) * self.velocidade
+                self.velocidade_y = (dy / distancia) * self.velocidade
+                # Aplica o movimento
+                self.rect.x += self.velocidade_x
+                self.rect.y += self.velocidade_y
 
     def atualizar_animacao(self, dt):
         agora = pygame.time.get_ticks()
@@ -144,3 +150,20 @@ class InimigoBase(pygame.sprite.Sprite):
             if largura_atual > 0:  
                 pygame.draw.rect(tela, COR_HP_ATUAL, barra_rect_camera, border_radius=2)
                 pygame.draw.rect(tela, (255, 255, 255), fundo_rect_camera, width=1, border_radius=2)
+
+    def verificar_colisao(self, tilemap):
+        # Colisão horizontal
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.velocidade_x > 0:  # Movendo para direita
+                    self.rect.right = rect.left
+                elif self.velocidade_x < 0:  # Movendo para esquerda
+                    self.rect.left = rect.right
+        
+        # Colisão vertical
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.velocidade_y > 0:  # Movendo para baixo
+                    self.rect.bottom = rect.top
+                elif self.velocidade_y < 0:  # Movendo para cima
+                    self.rect.top = rect.bottom
