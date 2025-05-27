@@ -14,6 +14,7 @@ class Esqueleto(InimigoBase):
         self.ultimo_ataque2 = 0
         self.tipo_ataque = 'ataque1'
         self.dano = self.dano_ataque1
+        self.xp_drop = 15
 
     def update(self, dt):
         agora = pygame.time.get_ticks()

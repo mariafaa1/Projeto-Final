@@ -25,6 +25,8 @@ class InimigoBase(pygame.sprite.Sprite):
         self.tempo_dano = 0
         self.animacao_morte_concluida = False
         self.direita = True
+        self.ultimo_ataque = 0
+        self.cooldown_ataque = 1500
 
     def carregar_animacoes(self):
         animacoes = {
@@ -101,6 +103,12 @@ class InimigoBase(pygame.sprite.Sprite):
                 self.image = pygame.transform.flip(self.image, True, False)
             
             self.mask = pygame.mask.from_surface(self.image)
+
+            if self.esta_atacando and self.indice_animacao == len(self.animacoes[self.estado]) - 1:
+                self.esta_atacando = False
+                self.ultimo_ataque = pygame.time.get_ticks()
+                if pygame.sprite.collide_rect(self, self.alvo):
+                    self.alvo.receber_dano(self.dano)
 
     def receber_dano(self, quantidade):
         if not self.esta_morto and not self.animacao_morte_concluida:

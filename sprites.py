@@ -29,12 +29,12 @@ class Soldado(pygame.sprite.Sprite):
             'ataque_leve': {
                 'frame_dano': 3,                          # Frame que aplica o dano
                 'cooldown': TEMPO_COOLDOWN_ATAQUE_LEVE,   # Tempo entre ataques
-                'hitbox': {'offset_x': 60, 'offset_y': -25, 'largura': 80, 'altura': 70}  # Posição e tamanho
+                'hitbox': {'offset_x': 10, 'offset_y': -25, 'largura': 30, 'altura': 27}  # Posição e tamanho
             },
             'ataque_pesado': {
                 'frame_dano': 4,
                 'cooldown': TEMPO_COOLDOWN_ATAQUE_PESADO,
-                'hitbox': {'offset_x': 70, 'offset_y': -30, 'largura': 90, 'altura': 80}
+                'hitbox': {'offset_x': 15, 'offset_y': -30, 'largura': 40, 'altura': 30}
             },
             'ataque_arco': {
                 'frame_dano': len(animacoes['ataque_arco']) - 2,  # Penúltimo frame (automatico)
@@ -61,6 +61,14 @@ class Soldado(pygame.sprite.Sprite):
         self.grupo_inimigos = grupo_inimigos
         self.indice_dano = 0
         self.ultimo_update_dano = 0
+        # ======================================================
+        # NOVOS ATRIBUTOS PARA HUD/XP (ADICIONADOS)
+        # ======================================================
+        self.xp = 0
+        self.nivel = 1
+        self.xp_para_prox_nivel = 100
+        self.cor_xp = (0, 150, 200)    # Azul
+        self.cor_nivel = (255, 215, 0) # Dourado
 
     def update(self, teclas):
         agora = pygame.time.get_ticks()
@@ -254,7 +262,57 @@ class Soldado(pygame.sprite.Sprite):
     def draw(self, tela):
         tela.blit(self.image, self.rect)
         self.draw_hp_bar(tela)
+    def draw_hud(self, tela):
+        """Desenha a interface do usuário (barra de XP e nível)"""
+        # Configurações da barra de XP
+        largura_max = 200
+        altura = 20
+        borda = 2
+        pos_x = 10
+        pos_y = 10
 
+        # Calcula a proporção do XP
+        proporcao = self.xp / self.xp_para_prox_nivel
+        largura_atual = int(largura_max * proporcao)
+
+        # Desenha o fundo da barra
+        pygame.draw.rect(tela, (50, 50, 50), (
+            pos_x - borda,
+            pos_y - borda,
+            largura_max + 2*borda,
+            altura + 2*borda
+        ))
+        
+        # Barra de XP
+        pygame.draw.rect(tela, self.cor_xp, (
+            pos_x,
+            pos_y,
+            largura_atual,
+            altura
+        ))
+
+        # Texto do nível
+        fonte = pygame.font.Font(None, 24)
+        texto = fonte.render(f"Nv. {self.nivel}", True, self.cor_nivel)
+        tela.blit(texto, (pos_x + largura_max + 10, pos_y - 3))
+
+    def ganhar_xp(self, quantidade):
+        """Adiciona XP e verifica se subiu de nível"""
+        self.xp += quantidade
+        while self.xp >= self.xp_para_prox_nivel:
+            self.subir_nivel()
+            self.xp -= self.xp_para_prox_nivel
+
+    def subir_nivel(self):
+        """Melhora os atributos ao subir de nível"""
+        self.nivel += 1
+        self.xp_para_prox_nivel = int(self.xp_para_prox_nivel * 1.5)
+        self.hp_max += 20
+        self.hp_atual = self.hp_max
+        # Melhoria de atributos
+        self.dano_ataque_leve += 2
+        self.dano_ataque_pesado += 3
+        self.dano_arco += 2
 class Projetil(pygame.sprite.Sprite):
     def __init__(self, position, virado_para_esquerda, grupo_inimigos):
         super().__init__()
