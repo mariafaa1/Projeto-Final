@@ -7,8 +7,7 @@ def carregar_animacoes():
         'andando': [],
         'ataque_leve': [],
         'ataque_pesado': [],
-        'ataque_arco': [],
-        'orc_andando': [],
+        'ataque_arco': []  # Adicionando animação de ataque à distância
     }
 
     for i in range(6):
@@ -31,10 +30,5 @@ def carregar_animacoes():
     for i in range(9):  # 9 frames para ataque arco
         imagem = pygame.image.load(os.path.join('assets', 'ataque_arco', f'ataque_arco{i}.png')).convert_alpha()
         animacoes['ataque_arco'].append(imagem)
-
-    for i in range(8):  # 7 frames para andar
-        imagem = pygame.image.load(os.path.join('assets', 'orc_andando', f'orc_andando{i}.png')).convert_alpha()
-        animacoes['orc_andando'].append(imagem)
-
 
     return animacoes
