@@ -1,9 +1,12 @@
 import pygame
+import random
 from config import (
-    LARGURA, ALTURA, VELOCIDADE_JOGADOR, VELOCIDADE_PROJETIL,
-    TEMPO_COOLDOWN_ATAQUE_PESADO, TEMPO_COOLDOWN_ARCO, TEMPO_COOLDOWN_ATAQUE_LEVE,
-    HP_MAXIMO, HP_INICIAL, POSICAO_BARRA_OFFSET_Y, LARGURA_BARRA, ALTURA_BARRA,
-    COR_HP_ATUAL, COR_HP_PERDIDO, BORDA_HP, COR_BORDA, TESTE_MANUAL_DANO
+    LARGURA, ALTURA,
+    VELOCIDADE_JOGADOR,
+    VELOCIDADE_PROJETIL,
+    VELOCIDADE_ORC,
+    TEMPO_COOLDOWN_ATAQUE_PESADO,
+    TEMPO_COOLDOWN_ARCO
 )
 
 class Soldado(pygame.sprite.Sprite):
@@ -13,8 +16,8 @@ class Soldado(pygame.sprite.Sprite):
         self.estado = 'parado'
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
-        self.rect = self.image.get_rect(center=(LARGURA//2, ALTURA//2))
-        self.tempo_animacao = 100
+        self.rect = self.image.get_rect(center=(LARGURA // 2, ALTURA // 2))
+        self.tempo_animacao = 100  # 100ms por frame
         self.ultimo_update = pygame.time.get_ticks()
         self.virado_para_esquerda = False
         self.executando_ataque = False
@@ -22,14 +25,14 @@ class Soldado(pygame.sprite.Sprite):
         self.ultimo_ataque_arco = 0
         self.projeteis = pygame.sprite.Group()
         self.disparar_flecha_pendente = False
-        self.ultimo_ataque_leve = 0
-        self.hp_max = HP_MAXIMO
-        self.hp_atual = HP_INICIAL
 
     def update(self, teclas):
         agora = pygame.time.get_ticks()
+
         if not self.executando_ataque:
             self.estado = 'parado'
+
+            # Movimento
             if teclas[pygame.K_a]:
                 self.rect.x -= VELOCIDADE_JOGADOR
                 self.estado = 'andando'
@@ -38,24 +41,30 @@ class Soldado(pygame.sprite.Sprite):
                 self.rect.x += VELOCIDADE_JOGADOR
                 self.estado = 'andando'
                 self.virado_para_esquerda = False
+
             if teclas[pygame.K_w]:
                 self.rect.y -= VELOCIDADE_JOGADOR
                 self.estado = 'andando'
             elif teclas[pygame.K_s]:
                 self.rect.y += VELOCIDADE_JOGADOR
                 self.estado = 'andando'
+
+            # Ataque pesado (K)
             if teclas[pygame.K_k] and agora - self.ultimo_ataque_pesado > TEMPO_COOLDOWN_ATAQUE_PESADO:
                 self.estado = 'ataque_pesado'
                 self.indice_animacao = 0
                 self.executando_ataque = True
                 self.ultimo_ataque_pesado = agora
                 self.ultimo_update = agora
-            elif teclas[pygame.K_j] and agora - self.ultimo_ataque_leve > TEMPO_COOLDOWN_ATAQUE_LEVE:
+
+            # Ataque leve (J)
+            elif teclas[pygame.K_j]:
                 self.estado = 'ataque_leve'
                 self.indice_animacao = 0
                 self.executando_ataque = True
-                self.ultimo_ataque_leve = agora
                 self.ultimo_update = agora
+
+            # Ataque à distância (L)
             elif teclas[pygame.K_l] and agora - self.ultimo_ataque_arco > TEMPO_COOLDOWN_ARCO:
                 self.estado = 'ataque_arco'
                 self.indice_animacao = 0
@@ -63,48 +72,47 @@ class Soldado(pygame.sprite.Sprite):
                 self.disparar_flecha_pendente = True
                 self.ultimo_ataque_arco = agora
                 self.ultimo_update = agora
-        if TESTE_MANUAL_DANO and teclas[pygame.K_h]:
-            self.receber_dano(10)
+
+        # Animação
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
             self.indice_animacao += 1
+
             total_frames = len(self.animacoes[self.estado])
-            if self.estado == 'ataque_arco' and self.disparar_flecha_pendente and self.indice_animacao == total_frames - 2:
-                deslocamento_y = 10
+
+            # Disparar no penúltimo frame da animação de ataque com arco
+            if (
+                self.estado == 'ataque_arco'
+                and self.disparar_flecha_pendente
+                and self.indice_animacao == total_frames - 2
+            ):
+                deslocamento_y = 15  # Ajuste vertical da flecha
                 centro_personagem = (self.rect.centerx, self.rect.centery + deslocamento_y)
                 novo_proj = Projetil(centro_personagem, self.virado_para_esquerda)
                 self.projeteis.add(novo_proj)
                 self.disparar_flecha_pendente = False
+
             if self.estado in self.animacoes and self.indice_animacao >= total_frames:
                 self.indice_animacao = 0
                 if self.executando_ataque:
                     self.executando_ataque = False
                     self.estado = 'parado'
+
+        # Atualiza imagem
         frame_list = self.animacoes.get(self.estado)
         if frame_list and self.indice_animacao < len(frame_list):
             frame = frame_list[self.indice_animacao]
             if self.virado_para_esquerda:
                 frame = pygame.transform.flip(frame, True, False)
             self.image = frame
+
+        # Atualiza projéteis
         self.projeteis.update()
-
-    def receber_dano(self, quantidade):
-        self.hp_atual = max(0, self.hp_atual - quantidade)
-
-    def draw_hp_bar(self, tela):
-        barra_x = self.rect.centerx - LARGURA_BARRA // 2
-        barra_y = self.rect.centery + POSICAO_BARRA_OFFSET_Y
-        proporcao_hp = self.hp_atual / self.hp_max
-        largura_atual = int(LARGURA_BARRA * proporcao_hp)
-        pygame.draw.rect(tela, COR_HP_PERDIDO, (barra_x, barra_y, LARGURA_BARRA, ALTURA_BARRA))
-        pygame.draw.rect(tela, COR_HP_ATUAL, (barra_x, barra_y, largura_atual, ALTURA_BARRA))
-        if BORDA_HP:
-            pygame.draw.rect(tela, COR_BORDA, (barra_x, barra_y, LARGURA_BARRA, ALTURA_BARRA), 1)
 
     def draw(self, tela):
         tela.blit(self.image, self.rect)
         self.projeteis.draw(tela)
-        self.draw_hp_bar(tela)
+
 
 class Projetil(pygame.sprite.Sprite):
     def __init__(self, position, virado_para_esquerda):
@@ -116,3 +124,50 @@ class Projetil(pygame.sprite.Sprite):
 
     def update(self):
         self.rect.x += self.velocidade * self.direcao
+
+
+class Orc(pygame.sprite.Sprite):
+    def __init__(self, animacoes, jogador):
+        super().__init__()
+        self.animacoes = animacoes
+        self.estado = 'orc_andando'  # Estado inicial: andando
+        self.indice_animacao = 0
+        self.image = self.animacoes[self.estado][self.indice_animacao]
+        self.rect = self.image.get_rect(center=(random.randint(100, LARGURA-100), random.randint(100, ALTURA-100)))  # Spawn aleatório
+        self.tempo_animacao = 100  # 100ms por frame
+        self.ultimo_update = pygame.time.get_ticks()
+        self.jogador = jogador  # Referência ao jogador (principal)
+        self.virado_para_esquerda = False
+        self.velocidade = VELOCIDADE_ORC  # Velocidade do Orc
+
+    def update(self):
+        agora = pygame.time.get_ticks()
+
+        # Movimentação em direção ao jogador
+        dx = self.jogador.rect.centerx - self.rect.centerx
+        dy = self.jogador.rect.centery - self.rect.centery
+        distancia = (dx**2 + dy**2)**0.5  # Distância entre o Orc e o jogador
+
+        if distancia > 50:  # Quando o Orc estiver a uma distância considerável, ele se move
+            dx, dy = dx / distancia, dy / distancia  # Normalizando o vetor
+            self.rect.x += dx * self.velocidade
+            self.rect.y += dy * self.velocidade
+            self.estado = 'orc_andando'  # Muda para o estado de andando
+        else:
+            self.estado = 'orc_andando'  # Caso contrário, permanece andando
+
+        # Atualiza a animação
+        if agora - self.ultimo_update > self.tempo_animacao:
+            self.ultimo_update = agora
+            self.indice_animacao += 1
+
+            if self.estado == 'orc_andando' and self.indice_animacao >= len(self.animacoes['orc_andando']):
+                self.indice_animacao = 0
+
+        # Atualiza a imagem do Orc com a animação
+        frame_list = self.animacoes.get(self.estado)
+        if frame_list and self.indice_animacao < len(frame_list):
+            frame = frame_list[self.indice_animacao]
+            if self.virado_para_esquerda:
+                frame = pygame.transform.flip(frame, True, False)
+            self.image = frame
