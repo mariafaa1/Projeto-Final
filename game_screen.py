@@ -5,7 +5,9 @@ from config import (
     JOGANDO, GAME_OVER, PRETO, BRANCO,
     FONTE_TAMANHO, CAMINHO_FONTE
 )
+# No início do arquivo:
 from inimigos_codigos.orc_normal import OrcNormal
+from inimigos_codigos.esqueleto import Esqueleto
 
 def tela_jogo(janela, animacoes):
     relogio = pygame.time.Clock()
@@ -15,6 +17,7 @@ def tela_jogo(janela, animacoes):
     
     soldado = Soldado(animacoes, grupo_inimigos, grupo_projeteis)
     grupo_inimigos.add(OrcNormal(x=300, y=300, alvo=soldado))
+    grupo_inimigos.add(Esqueleto(x=500, y=300, alvo=soldado))
     
     grupo_jogador = pygame.sprite.Group(soldado)
     

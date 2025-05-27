@@ -24,7 +24,7 @@ class InimigoBase(pygame.sprite.Sprite):
         self.esta_atacando = False
         self.tempo_dano = 0
         self.animacao_morte_concluida = False
-        self.direita = True  # Controle de direção
+        self.direita = True
 
     def carregar_animacoes(self):
         animacoes = {
@@ -36,43 +36,29 @@ class InimigoBase(pygame.sprite.Sprite):
             'dano': []
         }
 
-        # Carregar frames parado
-        pasta_parado = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_parado')
-        for i in range(6):
-            img = pygame.image.load(os.path.join(pasta_parado, f'orc_parado{i}.png')).convert_alpha()
-            animacoes['parado'].append(img)
+        def carregar_frames(pasta, prefixo, inicio, fim):
+            frames = []
+            for i in range(inicio, fim + 1):
+                caminho = os.path.join(pasta, f"{prefixo}{i}.png.png")
+                img = pygame.image.load(caminho).convert_alpha()
+                frames.append(img)
+            return frames
 
-        # Carregar frames andando
-        pasta_andando = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_andando')
-        for i in range(6):
-            img = pygame.image.load(os.path.join(pasta_andando, f'orc_andando{i}.png')).convert_alpha()
-            animacoes['andando'].append(img)
+        base_path = "assets/inimigos/esqueleto"
 
-        # Carregar frames morrendo
-        pasta_morrendo = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_morrendo')
-        for i in range(16, 20):
-            img = pygame.image.load(os.path.join(pasta_morrendo, f'Orc-Attack01-{i}.png.png')).convert_alpha()
-            animacoes['morrendo'].append(img)
-
-        # Carregar frames ataque1
-        pasta_ataque1 = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_ataque1')
-        for i in range(20, 26):
-            img = pygame.image.load(os.path.join(pasta_ataque1, f'Orc-Attack01-{i}.png.png')).convert_alpha()
-            animacoes['ataque1'].append(img)
-
-        # Carregar frames ataque2
-        pasta_ataque2 = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_ataque_2')
-        for i in range(6):
-            img = pygame.image.load(os.path.join(pasta_ataque2, f'orc{i}.png')).convert_alpha()
-            animacoes['ataque2'].append(img)
-
-        # Carregar frames dano
-        pasta_dano = os.path.join('assets', 'inimigos', 'orc_normal', 'orc_dano')
-        for i in range(1, 5):
-            img = pygame.image.load(os.path.join(pasta_dano, f'morte{i}.png')).convert_alpha()
-            animacoes['dano'].append(img)
+        animacoes['parado'] = carregar_frames(os.path.join(base_path, "esqueleto_parado"), "Skeleton-Attack01-", 10, 15)
+        animacoes['andando'] = carregar_frames(os.path.join(base_path, "andando"), "Skeleton-Attack01-", 2, 9)
+        animacoes['ataque1'] = carregar_frames(os.path.join(base_path, "ataque1"), "Skeleton-Attack01-", 24, 30)
+        animacoes['ataque2'] = carregar_frames(os.path.join(base_path, "ataque2"), "Skeleton-Attack01-", 1, 6)
+        animacoes['dano'] = carregar_frames(os.path.join(base_path, "esqueleto_dano"), "Skeleton-Attack01-", 16, 19)
+        animacoes['morrendo'] = carregar_frames(os.path.join(base_path, "esqueleto_morte"), "Skeleton-Attack01-", 20, 23)
 
         return animacoes
+
+    def verificar_distancia_ataque(self):
+        dx = self.alvo.rect.centerx - self.rect.centerx
+        dy = self.alvo.rect.centery - self.rect.centery
+        return (dx**2 + dy**2)**0.5 <= 50
 
     def update(self, dt):
         if not self.esta_morto:
@@ -92,10 +78,8 @@ class InimigoBase(pygame.sprite.Sprite):
 
             if distancia > 50:
                 self.estado = 'andando'
-                # Atualizar direção
                 if dx != 0:
                     self.direita = dx > 0
-                # Movimentação
                 self.rect.x += (dx / distancia) * self.velocidade
                 self.rect.y += (dy / distancia) * self.velocidade
 
@@ -104,7 +88,6 @@ class InimigoBase(pygame.sprite.Sprite):
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
             
-            # Avançar animação
             if self.estado == 'morrendo':
                 if self.indice_animacao < len(self.animacoes['morrendo']) - 1:
                     self.indice_animacao += 1
@@ -113,7 +96,6 @@ class InimigoBase(pygame.sprite.Sprite):
             else:
                 self.indice_animacao = (self.indice_animacao + 1) % len(self.animacoes[self.estado])
             
-            # Aplicar flip se necessário
             self.image = self.animacoes[self.estado][self.indice_animacao]
             if not self.direita:
                 self.image = pygame.transform.flip(self.image, True, False)
