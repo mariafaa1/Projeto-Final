@@ -318,7 +318,7 @@ class Soldado(pygame.sprite.Sprite):
         self.dano_ataque_pesado *= 3
         self.dano_arco *= 3
 class Projetil(pygame.sprite.Sprite):
-    def __init__(self, position, virado_para_esquerda, grupo_inimigos, dano):  # Adicione 'dano'
+    def __init__(self, position, virado_para_esquerda, grupo_inimigos, dano):
         super().__init__()
         try:
             self.image = pygame.image.load('assets/projetil_arco/flecha.png').convert_alpha()
@@ -332,12 +332,16 @@ class Projetil(pygame.sprite.Sprite):
         self.direcao = -1 if virado_para_esquerda else 1
         self.grupo_inimigos = grupo_inimigos
         self.dano = dano
+        self.mask = pygame.mask.from_surface(self.image)  # Mask para colisão precisa
 
     def update(self):
         self.rect.x += self.velocidade * self.direcao
-        if pygame.sprite.spritecollide(self, self.grupo_inimigos, False):
-            for inimigo in pygame.sprite.spritecollide(self, self.grupo_inimigos, False):
-                inimigo.receber_dano(self.dano)  # Use self.dano
+        
+        # Verificação de colisão com máscara
+        for inimigo in pygame.sprite.spritecollide(self, self.grupo_inimigos, False, pygame.sprite.collide_mask):
+            inimigo.receber_dano(self.dano)
             self.kill()
+            break
+        
         if self.rect.right < -50 or self.rect.left > LARGURA + 50:
             self.kill()

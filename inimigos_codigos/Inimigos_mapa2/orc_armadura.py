@@ -15,7 +15,7 @@ class OrcArmadura(InimigoBase):
         self.ultimo_ataque2 = 0
         self.tipo_ataque = 'ataque1'
         self.dano = self.dano_ataque1
-        self.xp_drop = 1000
+        self.xp_drop = 120
         self.escudo_hp = 150
         self.escudo_hp_max = 150
         self.escudo_ativo = True
@@ -50,6 +50,10 @@ class OrcArmadura(InimigoBase):
 
     def atualizar_animacao(self, dt):
         super().atualizar_animacao(dt)
+        
+        # Resetar animação de bloqueio
+        if self.estado == 'bloqueio' and self.indice_animacao >= len(self.animacoes['bloqueio']) - 1:
+            self.indice_animacao = 0
         
         if self.esta_atacando and self.indice_animacao == len(self.animacoes[self.estado]) - 1:
             self.esta_atacando = False

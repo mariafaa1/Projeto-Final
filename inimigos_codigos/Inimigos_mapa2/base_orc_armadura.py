@@ -31,6 +31,7 @@ class InimigoBase(pygame.sprite.Sprite):
         self.escudo_hp = 0
         self.escudo_hp_max = 0
         self.escudo_ativo = False
+        self.tempo_bloqueio = 0  # Novo atributo para controle do bloqueio
 
     def carregar_animacoes(self):
         animacoes = {
@@ -75,11 +76,15 @@ class InimigoBase(pygame.sprite.Sprite):
         elif self.estado == 'morrendo' and not self.animacao_morte_concluida:
             self.atualizar_animacao(dt)
             
-        if self.estado == 'dano' and pygame.time.get_ticks() - self.tempo_dano > 500:
+        # Resetar estados temporários
+        agora = pygame.time.get_ticks()
+        if self.estado == 'dano' and agora - self.tempo_dano > 500:
+            self.estado = 'parado'
+        if self.estado == 'bloqueio' and agora - self.tempo_bloqueio > 300:  # Timer para bloqueio
             self.estado = 'parado'
 
     def perseguir_alvo(self):
-        if not self.esta_morto and self.estado != 'dano' and self.alvo and not self.alvo.esta_morto:
+        if not self.esta_morto and self.estado not in ['dano', 'bloqueio'] and self.alvo and not self.alvo.esta_morto:
             dx = self.alvo.rect.centerx - self.rect.centerx
             dy = self.alvo.rect.centery - self.rect.centery
             distancia = (dx**2 + dy**2)**0.5
@@ -120,6 +125,7 @@ class InimigoBase(pygame.sprite.Sprite):
             if self.escudo_ativo:
                 self.escudo_hp = max(0, self.escudo_hp - quantidade)
                 self.estado = 'bloqueio'
+                self.tempo_bloqueio = pygame.time.get_ticks()  # Ativar timer
                 if self.escudo_hp <= 0:
                     self.escudo_ativo = False
                 return
