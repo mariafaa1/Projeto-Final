@@ -18,7 +18,7 @@ class InimigoBase(pygame.sprite.Sprite):
         self.hp_atual = hp_max
         self.velocidade = velocidade
         self.alvo = alvo
-        self.tempo_animacao = 200
+        self.tempo_animacao = 100
         self.ultimo_update = pygame.time.get_ticks()
         self.esta_morto = False
         self.esta_atacando = False

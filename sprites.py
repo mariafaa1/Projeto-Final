@@ -18,13 +18,10 @@ class Soldado(pygame.sprite.Sprite):
         self.dano_ataque_leve = DANO_ATAQUE_LEVE 
         self.dano_ataque_pesado = DANO_ATAQUE_PESADO
         self.dano_arco = DANO_ARCO
-
-        
-        # ======================================================
-        # PARÂMETROS AJUSTÁVEIS - ANIMAÇÃO
-        # ======================================================
-        self.tempo_animacao = 100       # Velocidade geral das animações (ms por frame)
-        self.tempo_animacao_morte = 150 # Velocidade animação morte
+        self.tempo_animacao = 100       
+        self.tempo_animacao_morte = 150
+        self.vel_x = 0 
+        self.vel_y = 0  
         
         # ======================================================
         # PARÂMETROS AJUSTÁVEIS - ATAQUES
@@ -107,6 +104,8 @@ class Soldado(pygame.sprite.Sprite):
         self.image = frame
 
     def processar_movimento_ataque(self, teclas, agora):
+        self.vel_x = 0 
+        self.vel_y = 0
         movimento = False
         novo_estado = 'parado'
         
@@ -129,6 +128,9 @@ class Soldado(pygame.sprite.Sprite):
             self.rect.y += VELOCIDADE_JOGADOR
             novo_estado = 'andando'
             movimento = True
+
+        self.rect.x += self.vel_x
+        self.rect.y += self.vel_y
 
         if not self.executando_ataque:
             self.estado = novo_estado

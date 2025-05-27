@@ -11,7 +11,7 @@ from inimigos_codigos.orc_normal import OrcNormal
 from inimigos_codigos.esqueleto import Esqueleto
 from inimigos_codigos.boss1.base_boss1 import BossBase
 from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura  
-from inimigos_codigos.Inimigos_mapa2.base_orc_armadura import InimigoBase  # Nome corrigido
+from inimigos_codigos.Inimigos_mapa2.esqueleto_arqueiro import EsqueletoArqueiro
 
 def debug_draw_hitboxes(surface, grupos, cor=(255, 0, 0), espessura=2):
     for grupo in grupos:
@@ -37,13 +37,20 @@ class LevelManager:
                     'classe': BossBase,
                     'pos': (LARGURA//2, ALTURA//2)
                 }
+            },
+            3: {  # Nova fase para testar arqueiros
+                'inimigos_normais': 3,
+                'boss': {
+                    'classe': BossBase,
+                    'pos': (LARGURA//2, ALTURA//2)
+                }
             }
         }
 
-    def spawn_fase(self, grupo_inimigos, alvo, grupo_jogador):
+    def spawn_fase(self, grupo_inimigos, alvo, grupo_jogador, grupo_projeteis):
         config = self.config_fases[self.fase_atual]
         
-        # Boss
+        # Spawn Boss
         boss = config['boss']['classe'](
             x=config['boss']['pos'][0],
             y=config['boss']['pos'][1],
@@ -51,13 +58,15 @@ class LevelManager:
         )
         grupo_inimigos.add(boss)
 
-        # Inimigos
+        # Spawn Inimigos
         for _ in range(config['inimigos_normais']):
             pos_x = random.randint(100, LARGURA-100)
             pos_y = random.randint(100, ALTURA-100)
             
             if self.fase_atual == 2:
                 inimigo = OrcArmadura(pos_x, pos_y, alvo)
+            elif self.fase_atual == 3:
+                inimigo = EsqueletoArqueiro(pos_x, pos_y, alvo, grupo_projeteis)
             else:
                 if random.random() > 0.5:
                     inimigo = Esqueleto(pos_x, pos_y, alvo)
@@ -76,9 +85,8 @@ def tela_jogo(janela, animacoes):
     
     soldado = Soldado(animacoes, grupo_inimigos, grupo_projeteis)
     grupo_jogador = pygame.sprite.Group(soldado)
-    level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador)
+    level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador, grupo_projeteis)
     
-    grupo_jogador = pygame.sprite.Group(soldado)
     estado_jogo = JOGANDO
     fonte = pygame.font.Font(CAMINHO_FONTE, FONTE_TAMANHO)
     executando = True
@@ -110,12 +118,12 @@ def tela_jogo(janela, animacoes):
                 estado_jogo = GAME_OVER
 
             boss_vivo = any(hasattr(inimigo, 'eh_boss') and not inimigo.esta_morto for inimigo in grupo_inimigos)
-            if not boss_vivo:
+            if not boss_vivo and level_manager.fase_atual < 3:  # Correção aplicada
                 level_manager.fase_atual += 1
                 grupo_inimigos.empty()
-                level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador)
+                level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador, grupo_projeteis)
 
-            # XP
+            # Sistema de XP
             for inimigo in grupo_inimigos:
                 if inimigo.esta_morto and not inimigo.xp_entregue:
                     if hasattr(inimigo, 'xp_drop') and inimigo.xp_drop > 0:

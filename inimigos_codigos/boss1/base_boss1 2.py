@@ -24,7 +24,7 @@ class BossBase(InimigoBase):
         self.eh_boss = True
         self.distancia_ataque = 70
         self.frame_dano = {'ataque_fraco': 3, 'ataque_pesado': 5, 'ataque_especial': 6}
-        self.tempo_animacao = 150
+        self.tempo_animacao = 100
         self.ultimo_update = pygame.time.get_ticks()
         self.animacoes = self.carregar_animacoes()
         self.image = self.animacoes['parado'][0]
