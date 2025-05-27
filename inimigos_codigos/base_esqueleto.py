@@ -27,6 +27,7 @@ class InimigoBase(pygame.sprite.Sprite):
         self.direita = True
         self.ultimo_ataque = 0
         self.cooldown_ataque = 1500
+        self.xp_entregue = False
 
     def carregar_animacoes(self):
         animacoes = {

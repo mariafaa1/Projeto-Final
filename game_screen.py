@@ -10,9 +10,10 @@ from config import (
 from inimigos_codigos.orc_normal import OrcNormal
 from inimigos_codigos.esqueleto import Esqueleto
 from inimigos_codigos.boss1.base_boss1 import BossBase
+from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura  
+from inimigos_codigos.Inimigos_mapa2.base_orc_armadura import InimigoBase  # Nome corrigido
 
 def debug_draw_hitboxes(surface, grupos, cor=(255, 0, 0), espessura=2):
-    """Desenha hitboxes de todos os sprites nos grupos especificados"""
     for grupo in grupos:
         for sprite in grupo:
             pygame.draw.rect(surface, cor, sprite.rect, espessura)
@@ -31,7 +32,7 @@ class LevelManager:
                 }
             },
             2: {
-                'inimigos_normais': 2,
+                'inimigos_normais': 1,
                 'boss': {
                     'classe': BossBase,
                     'pos': (LARGURA//2, ALTURA//2)
@@ -39,10 +40,10 @@ class LevelManager:
             }
         }
 
-    def spawn_fase(self, grupo_inimigos, alvo):
+    def spawn_fase(self, grupo_inimigos, alvo, grupo_jogador):
         config = self.config_fases[self.fase_atual]
         
-        # Spawn Boss
+        # Boss
         boss = config['boss']['classe'](
             x=config['boss']['pos'][0],
             y=config['boss']['pos'][1],
@@ -50,28 +51,32 @@ class LevelManager:
         )
         grupo_inimigos.add(boss)
 
-        # Spawn Inimigos Normais
+        # Inimigos
         for _ in range(config['inimigos_normais']):
             pos_x = random.randint(100, LARGURA-100)
             pos_y = random.randint(100, ALTURA-100)
             
-            if random.random() > 0.5:
-                inimigo = Esqueleto(pos_x, pos_y, alvo)
+            if self.fase_atual == 2:
+                inimigo = OrcArmadura(pos_x, pos_y, alvo)
             else:
-                inimigo = OrcNormal(pos_x, pos_y, alvo)
+                if random.random() > 0.5:
+                    inimigo = Esqueleto(pos_x, pos_y, alvo)
+                else:
+                    inimigo = OrcNormal(pos_x, pos_y, alvo)
             
             grupo_inimigos.add(inimigo)
 
 def tela_jogo(janela, animacoes):
     relogio = pygame.time.Clock()
     
-    # Inicialização dos sistemas
+    # Inicialização
     level_manager = LevelManager()
     grupo_inimigos = pygame.sprite.Group()
     grupo_projeteis = pygame.sprite.Group()
     
     soldado = Soldado(animacoes, grupo_inimigos, grupo_projeteis)
-    level_manager.spawn_fase(grupo_inimigos, soldado)
+    grupo_jogador = pygame.sprite.Group(soldado)
+    level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador)
     
     grupo_jogador = pygame.sprite.Group(soldado)
     estado_jogo = JOGANDO
@@ -97,51 +102,45 @@ def tela_jogo(janela, animacoes):
         if estado_jogo == JOGANDO:
             teclas = pygame.key.get_pressed()
             
-            # Atualizar entidades
             grupo_jogador.update(teclas)
             grupo_inimigos.update(dt)
             grupo_projeteis.update()
 
-            # Verificar morte do jogador
             if soldado.animacao_morte_concluida:
                 estado_jogo = GAME_OVER
 
-            # Verificar progressão de fase
             boss_vivo = any(hasattr(inimigo, 'eh_boss') and not inimigo.esta_morto for inimigo in grupo_inimigos)
             if not boss_vivo:
                 level_manager.fase_atual += 1
                 grupo_inimigos.empty()
-                level_manager.spawn_fase(grupo_inimigos, soldado)
+                level_manager.spawn_fase(grupo_inimigos, soldado, grupo_jogador)
 
-            # Sistema de XP (corrigido)
+            # XP
             for inimigo in grupo_inimigos:
-                if inimigo.esta_morto and hasattr(inimigo, 'xp_entregue') and not inimigo.xp_entregue:
-                    soldado.ganhar_xp(inimigo.xp_drop)
-                    inimigo.xp_entregue = True
+                if inimigo.esta_morto and not inimigo.xp_entregue:
+                    if hasattr(inimigo, 'xp_drop') and inimigo.xp_drop > 0:
+                        soldado.ganhar_xp(inimigo.xp_drop)
+                        inimigo.xp_entregue = True
 
         # Renderização
         janela.fill(FUNDO_BRANCO)
         
         if estado_jogo == JOGANDO:
-            # Desenhar todos os elementos
             grupo_jogador.draw(janela)
             grupo_projeteis.draw(janela)
             
-            # Desenhar inimigos com renderização customizada para o boss
             for inimigo in grupo_inimigos:
                 if isinstance(inimigo, BossBase):
                     inimigo.draw(janela)
                 else:
                     janela.blit(inimigo.image, inimigo.rect)
             
-            # UI
             soldado.draw_hud(janela)
             for sprite in grupo_jogador:
                 sprite.draw_hp_bar(janela)
             for inimigo in grupo_inimigos:
                 inimigo.draw_hp_bar(janela)
             
-            # Debug de hitboxes
             if debug_hitboxes:
                 debug_draw_hitboxes(janela, [grupo_jogador, grupo_inimigos, grupo_projeteis])
                 

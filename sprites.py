@@ -15,6 +15,10 @@ class Soldado(pygame.sprite.Sprite):
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(center=(LARGURA//2, ALTURA//2))
+        self.dano_ataque_leve = DANO_ATAQUE_LEVE 
+        self.dano_ataque_pesado = DANO_ATAQUE_PESADO
+        self.dano_arco = DANO_ARCO
+
         
         # ======================================================
         # PARÂMETROS AJUSTÁVEIS - ANIMAÇÃO
@@ -29,12 +33,12 @@ class Soldado(pygame.sprite.Sprite):
             'ataque_leve': {
                 'frame_dano': 3,                          # Frame que aplica o dano
                 'cooldown': TEMPO_COOLDOWN_ATAQUE_LEVE,   # Tempo entre ataques
-                'hitbox': {'offset_x': 10, 'offset_y': -25, 'largura': 30, 'altura': 27}  # Posição e tamanho
+                'hitbox': {'offset_x': 30, 'offset_y': -25, 'largura': 30, 'altura': 27}  # Posição e tamanho
             },
             'ataque_pesado': {
                 'frame_dano': 4,
                 'cooldown': TEMPO_COOLDOWN_ATAQUE_PESADO,
-                'hitbox': {'offset_x': 15, 'offset_y': -30, 'largura': 40, 'altura': 30}
+                'hitbox': {'offset_x': 40, 'offset_y': -30, 'largura': 40, 'altura': 30}
             },
             'ataque_arco': {
                 'frame_dano': len(animacoes['ataque_arco']) - 2,  # Penúltimo frame (automatico)
@@ -204,7 +208,7 @@ class Soldado(pygame.sprite.Sprite):
                 if self.estado == 'ataque_arco':
                     self.disparar_flecha()
                 else:
-                    dano = DANO_ATAQUE_LEVE if self.estado == 'ataque_leve' else DANO_ATAQUE_PESADO
+                    dano = self.dano_ataque_leve if self.estado == 'ataque_leve' else self.dano_ataque_pesado
                     self.aplicar_dano_corpo_a_corpo(dano)
 
             # Finalizar animação
@@ -216,7 +220,7 @@ class Soldado(pygame.sprite.Sprite):
     def disparar_flecha(self):
         deslocamento_y = self.ataques['ataque_arco']['deslocamento_flecha_y']
         centro_personagem = (self.rect.centerx, self.rect.centery + deslocamento_y)
-        novo_proj = Projetil(centro_personagem, self.virado_para_esquerda, self.grupo_inimigos)
+        novo_proj = Projetil(centro_personagem, self.virado_para_esquerda, self.grupo_inimigos, self.dano_arco)
         self.grupo_projeteis.add(novo_proj)
         self.disparar_flecha_pendente = False
 
@@ -297,24 +301,24 @@ class Soldado(pygame.sprite.Sprite):
         tela.blit(texto, (pos_x + largura_max + 10, pos_y - 3))
 
     def ganhar_xp(self, quantidade):
-        """Adiciona XP e verifica se subiu de nível"""
         self.xp += quantidade
         while self.xp >= self.xp_para_prox_nivel:
             self.subir_nivel()
             self.xp -= self.xp_para_prox_nivel
+            print(f"Subiu para o nível {self.nivel}!")
 
     def subir_nivel(self):
-        """Melhora os atributos ao subir de nível"""
         self.nivel += 1
         self.xp_para_prox_nivel = int(self.xp_para_prox_nivel * 1.5)
         self.hp_max += 20
         self.hp_atual = self.hp_max
+
         # Melhoria de atributos
-        self.dano_ataque_leve += 2
-        self.dano_ataque_pesado += 3
-        self.dano_arco += 2
+        self.dano_ataque_leve *= 3  
+        self.dano_ataque_pesado *= 3
+        self.dano_arco *= 3
 class Projetil(pygame.sprite.Sprite):
-    def __init__(self, position, virado_para_esquerda, grupo_inimigos):
+    def __init__(self, position, virado_para_esquerda, grupo_inimigos, dano):  # Adicione 'dano'
         super().__init__()
         try:
             self.image = pygame.image.load('assets/projetil_arco/flecha.png').convert_alpha()
@@ -327,12 +331,13 @@ class Projetil(pygame.sprite.Sprite):
         self.velocidade = VELOCIDADE_PROJETIL
         self.direcao = -1 if virado_para_esquerda else 1
         self.grupo_inimigos = grupo_inimigos
+        self.dano = dano
 
     def update(self):
         self.rect.x += self.velocidade * self.direcao
         if pygame.sprite.spritecollide(self, self.grupo_inimigos, False):
             for inimigo in pygame.sprite.spritecollide(self, self.grupo_inimigos, False):
-                inimigo.receber_dano(DANO_ARCO)
+                inimigo.receber_dano(self.dano)  # Use self.dano
             self.kill()
         if self.rect.right < -50 or self.rect.left > LARGURA + 50:
             self.kill()

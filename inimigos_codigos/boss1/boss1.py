@@ -7,10 +7,10 @@ class BossPhase1(BossBase):
         
         self.hp_max = 500
         self.hp_atual = self.hp_max
+        self.xp_drop = 300
         self.dano_ataque_fraco = 10
         self.dano_ataque_pesado = 15
         self.dano_ataque_especial = 25
-        self.xp_drop = 300
         self.distancia_ataque = 50
         self.frame_dano = {
             'ataque_fraco': 3,

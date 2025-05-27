@@ -21,7 +21,6 @@ class BossBase(InimigoBase):
         self.ultimo_ataque_fraco = 0
         self.ultimo_ataque_pesado = 0
         self.ultimo_ataque_especial = 0
-        self.xp_drop = 200
         self.eh_boss = True
         self.distancia_ataque = 70
         self.frame_dano = {'ataque_fraco': 3, 'ataque_pesado': 5, 'ataque_especial': 6}
@@ -33,6 +32,8 @@ class BossBase(InimigoBase):
         self.x_real = x
         self.y_real = y
         self.mask = pygame.mask.from_surface(self.image)
+        self.xp_drop = 0
+        self.xp_entregue = False
 
     def carregar_animacoes(self):
         animacoes = {

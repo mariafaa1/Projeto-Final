@@ -11,7 +11,7 @@ class OrcNormal(InimigoBase):
             alvo=alvo
         )
         self.dano_ataque = 15
-        self.xp_drop = 15
+        self.xp_drop = 100
 
     def update(self, dt):
         super().update(dt)

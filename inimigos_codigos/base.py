@@ -25,6 +25,7 @@ class InimigoBase(pygame.sprite.Sprite):
         self.tempo_dano = 0
         self.animacao_morte_concluida = False
         self.direita = True  # Controle de direção
+        self.xp_entregue = False
 
     def carregar_animacoes(self):
         animacoes = {
@@ -81,6 +82,7 @@ class InimigoBase(pygame.sprite.Sprite):
         return animacoes
 
     def update(self, dt):
+        
         if not self.esta_morto:
             self.perseguir_alvo()
             self.atualizar_animacao(dt)
@@ -89,6 +91,9 @@ class InimigoBase(pygame.sprite.Sprite):
             
         if self.estado == 'dano' and pygame.time.get_ticks() - self.tempo_dano > 500:
             self.estado = 'parado'
+
+        
+        
 
     def perseguir_alvo(self):
         if not self.esta_morto and self.estado != 'dano' and self.alvo and not self.alvo.esta_morto:
