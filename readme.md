@@ -1,92 +1,109 @@
-🎮 Pixel Fantasy
-Pixel Fantasy é um jogo de aventura single-player desenvolvido com Python e Pygame, ambientado em um mundo de fantasia medieval com gráficos retrô em pixel art. O jogador assume o controle de um herói que deve atravessar dois mapas repletos de inimigos, culminando em épicas batalhas contra chefes.
+# **Pixel Lord: Chronicles of Eldoria**
 
-🕹️ Como Jogar
-Ao iniciar o jogo, pressione ENTER para avançar as telas de narrativa.
+![Imagem do Jogo](assets/tela0.png)
 
-Após a introdução, o jogo será carregado automaticamente.
+---
 
-Movimente-se pelo mapa, derrote inimigos e acumule XP.
+## 🧙 Sobre o Jogo
 
-Derrote os chefes de cada fase para desbloquear as sequências finais.
+**Pixel Lord: Chronicles of Eldoria** é um jogo de ação e fantasia em estilo pixel art, desenvolvido como projeto de conclusão de curso. O jogador assume o papel de um guerreiro lendário que deve atravessar calabouços, enfrentar monstros e derrotar dois chefes finais em duas fases distintas.  
 
-🎯 Objetivo
-Sobreviver aos desafios de cada fase.
+A história se passa em **Eldoria**, um reino devastado por forças sombrias. Você é o último defensor da luz, escolhido para restaurar a paz e destruir os generais do caos: **Boss 1** e **Boss 2**.  
 
-Derrotar os chefes Boss1 e Boss2.
+A jornada é cheia de desafios, armadilhas e inimigos com comportamentos distintos e ataques variados. O jogo exige raciocínio rápido, reflexos e domínio dos comandos de ataque e movimentação.
 
-Concluir a aventura passando por todas as sequências narrativas até os créditos.
+---
 
-✅ Recursos do Jogo
-✅ Sistema de combate com ataques leves, pesados e à distância.
+## 🎓 Tutorial
 
-✅ Sistema de experiência (XP) e evolução de personagem.
+Para assistir ao tutorial completo de como jogar, acesse:
 
-✅ Sistema de colisão física com o mapa.
+🔗 [Tutorial do Pixel Lord - YouTube](https://www.youtube.com/watch?v=SEU_LINK_AQUI)
 
-✅ Sistema de animação para todas as ações do personagem e inimigos.
+---
 
-✅ Boss fights épicas.
+## 🎮 Controles
 
-✅ Transições narrativas automáticas entre fases.
+**Movimentação:**  
+- `W` – Andar para cima  
+- `A` – Andar para a esquerda  
+- `S` – Andar para baixo  
+- `D` – Andar para a direita  
 
-✅ Sistema de game over e reinício de fases.
+**Ataques:**  
+- `J` – Ataque leve  
+- `K` – Ataque pesado  
+- `L` – Ataque à distância (arco)  
 
-✅ Telas de menu, controles, narrativa e créditos.
+---
 
-✅ Implementação de câmera que segue o jogador.
+## ⚙️ Instalação
 
-🕹️ Controles
-Jogador (Soldado):
+Para instalar e rodar o jogo localmente:
 
-Tecla	Ação
-W	Mover para cima
-S	Mover para baixo
-A	Mover para esquerda
-D	Mover para direita
-J	Ataque leve
-K	Ataque pesado
-L	Ataque à distância (arco)
+1. Clone o repositório:
+   ```bash
+   git clone https://github.com/seu-usuario/pixel-lord.git
+   cd pixel-lord
+   ```
 
+2. Instale as dependências:
+   ```bash
+   pip install pygame pytmx
+   ```
 
-🖥️ Instalação e Execução
-Clone o repositório ou baixe os arquivos.
+3. Rode o jogo:
+   ```bash
+   python main.py
+   ```
 
-Instale as dependências:
+---
 
-pip instal pytmx
-pip install pygame
-Execute o jogo:
-python main.py
+## 🕹️ Como Jogar
 
+- O jogo é dividido em **duas fases**, com mapas distintos e diferentes tipos de inimigos.  
+- Enfrente inimigos comuns como **Orcs, Esqueletos e Arqueiros**, cada um com seu comportamento.  
+- Derrote o **Boss 1** para avançar à segunda fase, e o **Boss 2** para concluir o jogo.  
+- Use seus ataques estrategicamente, pois cada um possui cooldown e dano diferente.  
+- Ao derrotar inimigos, você ganha experiência (XP) e evolui o personagem.
 
-🛠️ Dependências
-pygame
-pytmx
-os
-sys
-random
-math
+---
 
-🧑‍💻 Créditos
+## 👨‍💻 Créditos
+
 Desenvolvido por:
-Rafael Fernandes
-Nicole
-Maria Fernanda
+- **Rafael Fernandes**
+- **Maria Fernanda**
+- **Nicole Silva**
 
-💡 Inspiração
-O jogo é inspirado em títulos clássicos de aventura e luta em plataforma como Castlevania e Brawlhalla, com foco na estética pixel art e jogabilidade fluida.
+---
 
-📹 Vídeos
-Demonstração Rápida: 🔗 Clique aqui
+## 🤖 Uso de Inteligência Artificial
 
-Tutorial Completo (7 min): 🔗 Clique aqui
+Durante o desenvolvimento, utilizamos **modelos de linguagem de IA** para melhorar o código e acelerar o processo de depuração. As ferramentas utilizadas foram:
 
-🚨 Observações
-O jogo é totalmente offline.
+- **ChatGPT** (modelo GPT-4.5)
+- **DeepSeek** (modelo DeepSeek R1)
 
-Testado no Python 3.12 com Pygame 2.6.
+⚠️ **Importante:**  
+O jogo **não foi construído por IA**. As IAs foram usadas exclusivamente como **assistentes** para esclarecer dúvidas, revisar funções com erro e sugerir melhorias. Por exemplo, ao enfrentar um bug em uma função, o código era enviado à IA com perguntas como:  
+_"O que está errado nessa função?"_ ou  
+_"Como melhorar esse comportamento?"_  
 
-Sistema de colisão otimizado com base no TileMap.
+As respostas eram analisadas pela equipe e aplicadas com julgamento crítico.  
+Além disso, os **comentários nos códigos foram gerados com IA e revisados por humanos**.
 
-Certifique-se que os arquivos de assets estão no local correto.
+---
+
+## 📦 Dependências
+
+O jogo utiliza as seguintes bibliotecas e módulos:
+
+### Python:
+- `pygame`
+- `pytmx`
+
+### Bibliotecas padrão:
+- `os`
+- `math`
+- `random`
