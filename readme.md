@@ -1,4 +1,4 @@
-# **Pixel Lord: Chronicles of Eldoria**
+# **Pixel Lord: O Senhor Dos Pixels!**
 
 ![Imagem do Jogo](assets/creditos.png)
 
