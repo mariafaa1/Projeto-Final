@@ -9,15 +9,11 @@ from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura
 from inimigos_codigos.Inimigos_mapa2.esqueleto_arqueiro import EsqueletoArqueiro
 from camera import Camera
 from tilemap import TileMap
-<<<<<<< HEAD
 import pygame as pg
-=======
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
 def processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis):
     for obj in tilemap.tmxdata.objects:
         if obj.name == 'spawn_soldado':
-<<<<<<< HEAD
             spawn_rect = pg.Rect(
                 obj.x * tilemap.zoom,
                 obj.y * tilemap.zoom,
@@ -27,11 +23,11 @@ def processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis):
             soldado.rect.center = spawn_rect.center
             soldado.hitbox_rect.center = spawn_rect.center
         elif obj.name == 'spawn_orc':
-            orc = OrcNormal(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
+            orc = OrcNormal(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_inimigos)
             grupo_inimigos.add(orc)
 
         elif obj.name == 'spawn_esqueleto':
-            esqueleto = Esqueleto(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
+            esqueleto = Esqueleto(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_inimigos)
             grupo_inimigos.add(esqueleto)
 
         elif obj.name == 'spawn_esqueleto_arqueiro':
@@ -43,33 +39,9 @@ def processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis):
             grupo_inimigos.add(orc_armadura)
 
         elif obj.name == 'spawn_boss':
-            boss = BossBase(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
+            boss = BossBase(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_inimigos)
             grupo_inimigos.add(boss)
 
-=======
-            soldado.rect.topleft = (obj.x * tilemap.zoom, obj.y * tilemap.zoom)
-
-        elif obj.name == 'spawn_orc':
-            orc = OrcNormal(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
-            grupo_inimigos.add(orc)
-
-        elif obj.name == 'spawn_esqueleto':
-            esqueleto = Esqueleto(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
-            grupo_inimigos.add(esqueleto)
-
-        elif obj.name == 'spawn_esqueleto_arqueiro':
-            arqueiro = EsqueletoArqueiro(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_projeteis)
-            grupo_inimigos.add(arqueiro)
-
-        elif obj.name == 'spawn_orc_armadura':
-            orc_armadura = OrcArmadura(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
-            grupo_inimigos.add(orc_armadura)
-
-        elif obj.name == 'spawn_boss':
-            boss = BossBase(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
-            grupo_inimigos.add(boss)
-
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
     print("[INFO] Spawns processados com sucesso!")
 
 def tela_jogo(janela, animacoes_soldado):
@@ -99,7 +71,6 @@ def tela_jogo(janela, animacoes_soldado):
                 estado = GAME_OVER
 
         teclas = pygame.key.get_pressed()
-<<<<<<< HEAD
         
         soldado.update(teclas)
         grupo_inimigos.update(pygame.time.get_ticks())
@@ -116,19 +87,6 @@ def tela_jogo(janela, animacoes_soldado):
 
         camera.update(soldado)
 
-=======
-        soldado.update(teclas)
-        grupo_inimigos.update(pygame.time.get_ticks())
-        grupo_projeteis.update()
-
-        for inimigo in grupo_inimigos:
-            if inimigo.esta_morto and not inimigo.xp_entregue:
-                soldado.ganhar_xp(inimigo.xp_drop)
-                inimigo.xp_entregue = True
-
-        camera.update(soldado)
-
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
         janela.fill(FUNDO_BRANCO)
         tilemap.render(janela, camera)
 

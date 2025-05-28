@@ -3,10 +3,7 @@ import pygame
 from config import LARGURA, ALTURA
 from assets import carregar_animacoes
 from game_screen import tela_jogo
-<<<<<<< HEAD
 import sys
-=======
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
 def main():
     # Inicialização do Pygame
@@ -26,10 +23,7 @@ def main():
 
     # Encerrar Pygame ao sair
     pygame.quit()
-<<<<<<< HEAD
     sys.exit()
-=======
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
 if __name__ == "__main__":
     main()

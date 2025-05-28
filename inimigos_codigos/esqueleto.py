@@ -1,14 +1,18 @@
-<<<<<<< HEAD
 #esqueleto.py
-=======
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 import pygame
 import random
 from inimigos_codigos.base_esqueleto import InimigoBase
 
 class Esqueleto(InimigoBase):
-    def __init__(self, x, y, alvo):
-        super().__init__(x, y, hp_max=70, velocidade=1.8, alvo=alvo)
+    def __init__(self, x, y, alvo, inimigos_group):
+        super().__init__(
+            x=x,
+            y=y,
+            hp_max=70,
+            velocidade=1.8,
+            alvo=alvo,
+            inimigos_group=inimigos_group 
+        )
         
         self.dano_ataque1 = 15
         self.dano_ataque2 = 20
@@ -19,27 +23,20 @@ class Esqueleto(InimigoBase):
         self.tipo_ataque = 'ataque1'
         self.dano = self.dano_ataque1
         self.xp_drop = 15
+        
+    
 
     def update(self, dt):
         agora = pygame.time.get_ticks()
-<<<<<<< HEAD
     
         if not self.esta_morto and not self.esta_atacando:
             if self.verificar_distancia_ataque():
                 ataques_disponiveis = []
             
-=======
-        
-        if not self.esta_morto and not self.esta_atacando:
-            if self.verificar_distancia_ataque():
-                ataques_disponiveis = []
-                
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
                 if agora - self.ultimo_ataque1 >= self.cooldown_ataque1:
                     ataques_disponiveis.append('ataque1')
                 if agora - self.ultimo_ataque2 >= self.cooldown_ataque2:
                     ataques_disponiveis.append('ataque2')
-<<<<<<< HEAD
             
                 if ataques_disponiveis:
                     self.tipo_ataque = random.choice(ataques_disponiveis)
@@ -56,24 +53,13 @@ class Esqueleto(InimigoBase):
         if self.estado == 'dano' and pygame.time.get_ticks() - self.tempo_dano > 500:
             self.estado = 'parado'
 
-=======
-                
-                if ataques_disponiveis:
-                    self.tipo_ataque = random.choice(ataques_disponiveis)
-                    self.iniciar_ataque(agora)
-        
-        super().update(dt)
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
     def iniciar_ataque(self, tempo_atual):
         self.esta_atacando = True
         self.estado = self.tipo_ataque
         self.indice_animacao = 0
-<<<<<<< HEAD
         self.velocidade_x = 0  
         self.velocidade_y = 0
-=======
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
         
         if self.tipo_ataque == 'ataque1':
             self.dano = self.dano_ataque1

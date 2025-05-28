@@ -8,8 +8,8 @@ from config import (
 from inimigos_codigos.base import InimigoBase
 
 class BossBase(InimigoBase):
-    def __init__(self, x, y, alvo):
-        super().__init__(x, y, hp_max=600, velocidade=0.7, alvo=alvo)
+    def __init__(self, x, y, alvo, inimigos_group):
+        super().__init__(x, y, hp_max=600, velocidade=0.7, alvo=alvo, inimigos_group=inimigos_group)
         self.image = None
         self.rect = pygame.Rect(0, 0, 0, 0)
         self.dano_ataque_fraco = 35
@@ -32,8 +32,12 @@ class BossBase(InimigoBase):
         self.x_real = x
         self.y_real = y
         self.mask = pygame.mask.from_surface(self.image)
-        self.xp_drop = 0
+        self.xp_drop = 2000
         self.xp_entregue = False
+        self.velocidade_x = 0  
+        self.velocidade_y = 0
+        self.raio_perseguicao = 500
+        self.inimigos_group = inimigos_group
 
     def carregar_animacoes(self):
         animacoes = {
@@ -72,31 +76,32 @@ class BossBase(InimigoBase):
         surface.blit(self.image, self.rect.topleft)
 
     def perseguir_alvo(self):
-        if self.esta_morto or self.esta_atacando or self.estado == 'dano':
+        if self.esta_atacando:
             return
-            
-        dx = self.alvo.rect.centerx - self.rect.centerx
-        dy = self.alvo.rect.centery - self.rect.centery
-        distancia = (dx**2 + dy**2)**0.5
-        limiar_parada = self.distancia_ataque * 0.8
+        self.velocidade_x = 0  # Reinicia as velocidades a cada frame
+        self.velocidade_y = 0  #
+        if not self.esta_morto and self.estado != 'dano' and self.alvo and not self.alvo.esta_morto:
+            dx = self.alvo.rect.centerx - self.rect.centerx
+            dy = self.alvo.rect.centery - self.rect.centery
+            distancia = (dx**2 + dy**2)**0.5
 
-        if distancia > limiar_parada:
-            if distancia != 0:
-                velocidade_x = (dx / distancia) * self.velocidade
-                velocidade_y = (dy / distancia) * self.velocidade
-                self.x_real += velocidade_x
-                self.y_real += velocidade_y
-                self.rect.center = (int(self.x_real), int(self.y_real))
-
-            if distancia > 5:
-                self.estado = 'andando'
-                self.direita = dx > 0
+            if distancia <= self.raio_perseguicao:
+                if distancia > 50:
+                    self.estado = 'andando'
+                    if dx != 0:
+                        self.direita = dx > 0
+                # Calcula a velocidade em X e Y
+                        self.velocidade_x = (dx / distancia) * self.velocidade
+                        self.velocidade_y = (dy / distancia) * self.velocidade
+                # Aplica o movimento
+                        self.rect.x += self.velocidade_x
+                        self.rect.y += self.velocidade_y
+                    else:
+                        self.estado = 'parado'
+                else:
+                    self.estado = 'parado'  # ✅ **Adiciona isso: garante que fora do raio fique parado**
             else:
                 self.estado = 'parado'
-                self.indice_animacao = 0
-        else:
-            self.estado = 'parado'
-            self.indice_animacao = 0
 
     def verificar_distancia_ataque(self):
         dx = self.alvo.rect.centerx - self.rect.centerx
@@ -171,3 +176,39 @@ class BossBase(InimigoBase):
             if not self.direita:
                 self.image = pygame.transform.flip(self.image, True, False)
             self.mask = pygame.mask.from_surface(self.image)
+
+    def verificar_colisao(self, tilemap):
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.velocidade_x > 0:  # Movendo para direita
+                    self.rect.right = rect.left
+                elif self.velocidade_x < 0:  # Movendo para esquerda
+                    self.rect.left = rect.right
+        
+        # Colisão vertical
+        def verificar_colisao(self, tilemap):
+            original_x = self.hitbox_rect.x
+            original_y = self.hitbox_rect.y
+    
+    # Movimento horizontal
+            self.hitbox_rect.x += self.velocidade_x
+            for rect in tilemap.collision_rects:
+                if self.hitbox_rect.colliderect(rect):
+                    if self.velocidade_x > 0:
+                        self.hitbox_rect.right = rect.left
+                    else:
+                        self.hitbox_rect.left = rect.right
+                    break
+    
+    # Movimento vertical
+            self.hitbox_rect.y += self.velocidade_y
+            for rect in tilemap.collision_rects:
+                if self.hitbox_rect.colliderect(rect):
+                    if self.velocidade_y > 0:
+                        self.hitbox_rect.bottom = rect.top
+                    else:
+                        self.hitbox_rect.top = rect.bottom
+                    break
+    
+    # Atualiza a posição real
+            self.rect.center = self.hitbox_rect.center

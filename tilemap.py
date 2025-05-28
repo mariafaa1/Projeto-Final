@@ -1,11 +1,8 @@
-<<<<<<< HEAD
 #tilemap.py
 import pygame as pg
 from pytmx.util_pygame import load_pygame
 import pytmx
 
-=======
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 import pygame as pg
 from pytmx.util_pygame import load_pygame
 import pytmx
@@ -28,7 +25,6 @@ class TileMap:
 
         for layer in self.tmxdata.layers:
             if isinstance(layer, pytmx.TiledTileLayer):
-<<<<<<< HEAD
                 self.render_tile_layer(layer, tile_width, tile_height)
             elif isinstance(layer, pytmx.TiledObjectGroup):
                 if layer.name.lower() == "colisão":
@@ -47,14 +43,6 @@ class TileMap:
             )
             self.collision_rects.append(collision_rect)
             print(f"Colisão carregada: {collision_rect}")
-=======
-                if layer.name.lower() != "colisão":
-                    self.render_tile_layer(layer, tile_width, tile_height)
-                else:
-                    print(f"Layer '{layer.name}' ignorada na renderização.")
-            elif isinstance(layer, pytmx.TiledObjectGroup):
-                self.process_object_layer(layer)
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
     def render_tile_layer(self, layer, tile_width, tile_height):
         for x, y, tile in layer.tiles():
@@ -93,8 +81,4 @@ class TileMap:
         )
 
     def render(self, surface, camera):
-<<<<<<< HEAD
         surface.blit(self.surface_completa, (-int(camera.offset.x), -int(camera.offset.y)))
-=======
-        surface.blit(self.surface_completa, (-int(camera.offset.x), -int(camera.offset.y)))
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)

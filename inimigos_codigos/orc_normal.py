@@ -1,18 +1,17 @@
-<<<<<<< HEAD
 #orc_normal.py
-=======
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 from .base import InimigoBase
 import random
 import pygame
 class OrcNormal(InimigoBase):
-    def __init__(self, x, y, alvo):
+    def __init__(self, x, y, alvo, inimigos_group):
         super().__init__(
             x=x,
             y=y,
             hp_max=100,
             velocidade=1,
-            alvo=alvo
+            alvo=alvo,
+            inimigos_group=inimigos_group
+            
         )
         self.dano_ataque = 15
         self.xp_drop = 100
@@ -33,11 +32,8 @@ class OrcNormal(InimigoBase):
         self.esta_atacando = True
         self.estado = random.choice(['ataque1', 'ataque2'])
         self.indice_animacao = 0
-<<<<<<< HEAD
         self.velocidade_x = 0  
         self.velocidade_y = 0
-=======
->>>>>>> 924f1a4 (commit - jogo desoft - commit dia 21 rubrica)
 
     def atualizar_animacao(self, dt):
         super().atualizar_animacao(dt)
