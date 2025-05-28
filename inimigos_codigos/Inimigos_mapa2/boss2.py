@@ -1,19 +1,20 @@
-
-#boss1.py
 import pygame
-from boss1.base_boss1 import BossBase
+from inimigos_codigos.Inimigos_mapa2 import BossBase2
 
-class BossPhase1(BossBase):
-    def __init__(self, x, y, alvo):
-        super().__init__(x, y, alvo)
-        
+class BossPhase2(BossBase2):
+    def __init__(self, x, y, alvo, inimigos_group):
+        super().__init__(x, y, alvo, inimigos_group)
+
         self.hp_max = 500
         self.hp_atual = self.hp_max
         self.xp_drop = 300
+        
         self.dano_ataque_fraco = 10
         self.dano_ataque_pesado = 15
         self.dano_ataque_especial = 25
+        
         self.distancia_ataque = 50
+        
         self.frame_dano = {
             'ataque_fraco': 5,
             'ataque_pesado': 9,

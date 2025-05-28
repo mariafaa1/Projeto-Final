@@ -1,3 +1,4 @@
+#orc_armadura.py
 import pygame
 import random
 from inimigos_codigos.Inimigos_mapa2.base_orc_armadura import InimigoBase

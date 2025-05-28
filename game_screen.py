@@ -7,6 +7,7 @@ from inimigos_codigos.esqueleto import Esqueleto
 from inimigos_codigos.boss1.base_boss1 import BossBase
 from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura
 from inimigos_codigos.Inimigos_mapa2.esqueleto_arqueiro import EsqueletoArqueiro
+from inimigos_codigos.Inimigos_mapa2.boss2 import Boss2
 from camera import Camera
 from tilemap import TileMap
 import pygame as pg
@@ -41,38 +42,7 @@ def loop_jogo(self):
     
     return self.estado
 
-def processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis):
-    for obj in tilemap.tmxdata.objects:
-        if obj.name == 'spawn_soldado':
-            spawn_rect = pg.Rect(
-                obj.x * tilemap.zoom,
-                obj.y * tilemap.zoom,
-                obj.width * tilemap.zoom,
-                obj.height * tilemap.zoom
-            )
-            soldado.rect.center = spawn_rect.center
-            soldado.hitbox_rect.center = spawn_rect.center
-        elif obj.name == 'spawn_orc':
-            orc = OrcNormal(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_inimigos)
-            grupo_inimigos.add(orc)
 
-        elif obj.name == 'spawn_esqueleto':
-            esqueleto = Esqueleto(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_inimigos)
-            grupo_inimigos.add(esqueleto)
-
-        elif obj.name == 'spawn_esqueleto_arqueiro':
-            arqueiro = EsqueletoArqueiro(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_projeteis, grupo_inimigos)
-            grupo_inimigos.add(arqueiro)
-
-        elif obj.name == 'spawn_orc_armadura':
-            orc_armadura = OrcArmadura(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado)
-            grupo_inimigos.add(orc_armadura)
-
-        elif obj.name == 'spawn_boss':
-            boss = BossBase(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_inimigos)
-            grupo_inimigos.add(boss)
-
-    print("[INFO] Spawns processados com sucesso!")
 
 def tela_jogo(janela, animacoes_soldado, tilemap):
     clock = pygame.time.Clock()
@@ -89,8 +59,6 @@ def tela_jogo(janela, animacoes_soldado, tilemap):
     camera = Camera(largura_janela, altura_janela)
     mapa_largura, mapa_altura = tilemap.map_size
     camera.configurar_limites(mapa_largura, mapa_altura)
-
-    processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis)
 
     while estado == JOGANDO:
         dt = clock.tick(FPS) / 1000  # Calcula delta time
