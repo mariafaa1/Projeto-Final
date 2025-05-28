@@ -1,25 +1,14 @@
+#boss2.py
+from inimigos_codigos.Inimigos_mapa2.base_boss2 import Boss2Base
 import pygame
-from inimigos_codigos.Inimigos_mapa2 import BossBase2
 
-class BossPhase2(BossBase2):
-    def __init__(self, x, y, alvo, inimigos_group):
-        super().__init__(x, y, alvo, inimigos_group)
-
-        self.hp_max = 500
+class Boss2(Boss2Base):
+    def __init__(self, x, y, alvo, grupo_inimigos):
+        super().__init__(x, y, alvo, grupo_inimigos)
+        
+        # Ajustar atributos específicos
         self.hp_atual = self.hp_max
-        self.xp_drop = 300
-        
-        self.dano_ataque_fraco = 10
-        self.dano_ataque_pesado = 15
-        self.dano_ataque_especial = 25
-        
-        self.distancia_ataque = 50
-        
-        self.frame_dano = {
-            'ataque_fraco': 5,
-            'ataque_pesado': 9,
-            'ataque_especial': 7
-        }
+        self.distancia_ataque = 150
 
     def aplicar_dano_area(self, raio):
         area_ataque = pygame.Rect(

@@ -9,6 +9,7 @@ from inimigos_codigos.esqueleto import Esqueleto
 from inimigos_codigos.boss1.base_boss1 import BossBase
 from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura
 from inimigos_codigos.Inimigos_mapa2.esqueleto_arqueiro import EsqueletoArqueiro
+from inimigos_codigos.Inimigos_mapa2.boss2 import Boss2
 
 class GameManager:
     def __init__(self, janela, animacoes):
@@ -66,14 +67,12 @@ class GameManager:
             self.processar_spawns()
             return True
 
-        except FileNotFoundError:
-            print(f"ERRO: Mapa {self.level_atual} não encontrado!")
-            return False
-        except KeyError as e:
-            print(f"ERRO: Animação não encontrada - {str(e)}")
-            return False
         except Exception as e:
-            print(f"ERRO CRÍTICO: {str(e)}")
+            print(f"ERRO CRÍTICO AO CARREGAR LEVEL {self.level_atual}:")
+            print(f"Tipo: {type(e).__name__}")
+            print(f"Detalhes: {str(e)}")
+            import traceback
+            traceback.print_exc()  # ← Mostra a stack trace completa
             return False
 
 
@@ -125,6 +124,18 @@ class GameManager:
                     self.grupo_projeteis,
                     self.grupo_inimigos
                 ).add(self.grupo_inimigos)
+            elif obj.name == 'spawn_boss2':
+                print(f"Tentando spawnar Boss2 em ({obj.x}, {obj.y})")  # ← Adicionar
+                try:
+                    Boss2(
+                        obj.x * self.tilemap.zoom,
+                        obj.y * self.tilemap.zoom,
+                        self.soldado,
+                        self.grupo_inimigos
+                    ).add(self.grupo_inimigos)
+                    print("Boss2 criado com sucesso!")
+                except Exception as e:
+                    print(f"Erro ao criar Boss2: {str(e)}")
 
 
     def loop_jogo(self):
@@ -163,11 +174,13 @@ class GameManager:
             if inimigo.esta_morto and not inimigo.xp_entregue:
                 self.soldado.ganhar_xp(inimigo.xp_drop)
                 inimigo.xp_entregue = True
-                if isinstance(inimigo, BossBase):
+            # Corrigido: usar tupla para verificar múltiplas classes
+                if isinstance(inimigo, (BossBase, Boss2)):
                     self.boss_derrotado = True
-            if isinstance(inimigo, BossBase) and not inimigo.esta_morto:
+        # Corrigido: mesma verificação aqui
+            if isinstance(inimigo, (BossBase, Boss2)) and not inimigo.esta_morto:
                 boss_vivo = True
-        
+    
         if not boss_vivo and not self.novas_telas_executadas:
             self.iniciar_transicao_fase()
 

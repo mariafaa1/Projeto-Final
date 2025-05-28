@@ -778,7 +778,7 @@
   <object id="487" name="spawn_esqueleto_arqueiro" x="1841.03" y="196.29"/>
   <object id="488" name="spawn_esqueleto_arqueiro" x="1825.39" y="451.359"/>
   <object id="489" name="spawn_esqueleto_arqueiro" x="1483.5" y="737.705"/>
-  <object id="490" name="spawn_boss" x="341.283" y="110.497"/>
+  <object id="490" name="spawn_boss2" x="341.283" y="110.497"/>
   <object id="491" name="spawn_orc_armadura" x="849.067" y="222.933"/>
   <object id="492" name="spawn_orc_armadura" x="873.6" y="222.933"/>
   <object id="493" name="spawn_orc_armadura" x="873.6" y="248.533"/>
