@@ -3,6 +3,13 @@ ALTURA = 600
 FPS = 60
 VELOCIDADE_JOGADOR = 5
 
+# chaves de controle
+JOGANDO = 0
+GAME_OVER = 1
+PAUSADO = 2
+CARREGANDO = 3
+MENU = 4
+
 # Cores
 CINZA_ESCURO = (30, 30, 30)
 FUNDO_BRANCO = (0, 0, 0)
