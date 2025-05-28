@@ -43,9 +43,11 @@ class InimigoBase(pygame.sprite.Sprite):
             'morrendo': [],
             'ataque1': [],
             'ataque2': [],
+            'ataque3': [],
             'dano': [],
             'bloqueio': []
         }
+        print(f"Frames do ataque3: {len(animacoes['ataque3'])}")
 
         def carregar_frames(pasta, prefixo, inicio, fim, escala=4):
             frames = []
@@ -60,8 +62,9 @@ class InimigoBase(pygame.sprite.Sprite):
         animacoes['parado'] = carregar_frames('Idle_ArmoredOrc', 'Idle - ', 1, 6, 3)
         animacoes['andando'] = carregar_frames('Walk_ArmoredOrc', 'Walk - ', 1, 8, 3)
         animacoes['morrendo'] = carregar_frames('Death_ArmoredOrc', 'Death - ', 1, 4, 3)
-        animacoes['ataque1'] = carregar_frames('Attack1_ArmoredOrc', 'Attack1 - ', 1, 7, 3)
+        animacoes['ataque1'] = carregar_frames('Attack1_ArmoredOrc', 'Attack1 - ', 1, 6, 3)
         animacoes['ataque2'] = carregar_frames('Attack2_ArmoredOrc', 'Attack2 - ', 1, 8, 3)
+        animacoes['ataque3'] = carregar_frames('Attack3_ArmoredOrc', 'Attack3 - ', 1, 9, 3)
         animacoes['dano'] = carregar_frames('Hurt_ArmoredOrc', 'Hurt - ', 1, 4, 3)
         animacoes['bloqueio'] = carregar_frames('Block_ArmoredOrc', 'Block - ', 1, 4, 3)
 
@@ -119,8 +122,11 @@ class InimigoBase(pygame.sprite.Sprite):
                 dir_x = dx / distancia
                 dir_y = dy / distancia
             else:
-                dir_x = 0
-                dir_y = 0
+                self.velocidade_x = 0
+                self.velocidade_y = 0
+        # Não altera o estado se já estiver atacando ou em outros estados importantes
+                if not self.esta_atacando and self.estado not in ['ataque1', 'ataque2', 'ataque3', 'dano', 'bloqueio']:
+                    self.estado = 'parado'
             
         # 6. Evitar outros inimigos
             evitar_x, evitar_y = self.calcular_evitar_inimigos()
@@ -147,7 +153,8 @@ class InimigoBase(pygame.sprite.Sprite):
         # 11. Parar se estiver perto o suficiente para atacar
             self.velocidade_x = 0
             self.velocidade_y = 0
-            self.estado = 'parado'
+            if self.estado not in ['ataque1', 'ataque2', 'ataque3', 'dano', 'bloqueio']:
+                self.estado = 'parado'
 
     def atualizar_animacao(self, dt):
         agora = pygame.time.get_ticks()
