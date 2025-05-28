@@ -113,7 +113,8 @@ class GameManager:
                 OrcArmadura(
                     obj.x * self.tilemap.zoom,
                     obj.y * self.tilemap.zoom,
-                    self.soldado
+                    self.soldado,
+                    self.grupo_inimigos  # Passar o grupo de inimigos
                 ).add(self.grupo_inimigos)
 
 

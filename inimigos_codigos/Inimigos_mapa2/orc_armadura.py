@@ -4,8 +4,7 @@ import random
 from inimigos_codigos.Inimigos_mapa2.base_orc_armadura import InimigoBase
 
 class OrcArmadura(InimigoBase):
-    
-    def __init__(self, x, y, alvo):
+    def __init__(self, x, y, alvo, grupo_inimigos):  # Adicionar grupo_inimigos
         super().__init__(x, y, hp_max=400, velocidade=1.5, alvo=alvo)
         self.dano_ataque1 = 25
         self.dano_ataque2 = 35
@@ -19,8 +18,12 @@ class OrcArmadura(InimigoBase):
         self.escudo_hp = 150
         self.escudo_hp_max = 150
         self.escudo_ativo = True
+        self.grupo_inimigos = grupo_inimigos  # Novo atributo
+        self.tilemap = alvo.tilemap  # Acessar tilemap do jogador
+        self.raio_perseguicao = 200
 
     def update(self, dt):
+        super().update(dt)
         agora = pygame.time.get_ticks()
         
         if not self.esta_morto and not self.esta_atacando:
@@ -35,8 +38,11 @@ class OrcArmadura(InimigoBase):
                 if ataques_disponiveis:
                     self.tipo_ataque = random.choice(ataques_disponiveis)
                     self.iniciar_ataque(agora)
-        
-        super().update(dt)
+            
+            if self.esta_morto:
+                self.velocidade_x = 0
+                self.velocidade_y = 0
+    
 
     def iniciar_ataque(self, tempo_atual):
         self.esta_atacando = True

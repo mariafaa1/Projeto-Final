@@ -31,7 +31,10 @@ class InimigoBase(pygame.sprite.Sprite):
         self.escudo_hp = 0
         self.escudo_hp_max = 0
         self.escudo_ativo = False
-        self.tempo_bloqueio = 0  # Novo atributo para controle do bloqueio
+        self.tempo_bloqueio = 0
+        self.velocidade_x = 0  # Novo atributo
+        self.velocidade_y = 0
+        self.raio_perseguicao = 200
 
     def carregar_animacoes(self):
         animacoes = {
@@ -74,6 +77,8 @@ class InimigoBase(pygame.sprite.Sprite):
             self.perseguir_alvo()
             self.atualizar_animacao(dt)
         elif self.estado == 'morrendo' and not self.animacao_morte_concluida:
+            self.velocidade_x = 0  # Forçar velocidade zero
+            self.velocidade_y = 0  # Forçar velocidade zero
             self.atualizar_animacao(dt)
             
         # Resetar estados temporários
@@ -84,17 +89,65 @@ class InimigoBase(pygame.sprite.Sprite):
             self.estado = 'parado'
 
     def perseguir_alvo(self):
-        if not self.esta_morto and self.estado not in ['dano', 'bloqueio'] and self.alvo and not self.alvo.esta_morto:
-            dx = self.alvo.rect.centerx - self.rect.centerx
-            dy = self.alvo.rect.centery - self.rect.centery
-            distancia = (dx**2 + dy**2)**0.5
+    # 1. Verificar condições para perseguir
+        if (self.esta_morto or 
+            self.estado in ['dano', 'bloqueio'] or 
+            not self.alvo or 
+            self.alvo.esta_morto):
+            self.velocidade_x = 0
+            self.velocidade_y = 0
+            return
 
-            if distancia > 70:
-                self.estado = 'andando'
-                if dx != 0:
-                    self.direita = dx > 0
-                self.rect.x += (dx / distancia) * self.velocidade
-                self.rect.y += (dy / distancia) * self.velocidade
+    # 2. Calcular direção e distância
+        dx = self.alvo.rect.centerx - self.rect.centerx
+        dy = self.alvo.rect.centery - self.rect.centery
+        distancia = (dx**2 + dy**2)**0.5
+
+    # 3. Verificar se está dentro do raio de perseguição (NOVO)
+        if distancia > self.raio_perseguicao:
+            self.velocidade_x = 0
+            self.velocidade_y = 0
+            self.estado = 'parado'
+            return
+
+    # 4. Lógica de movimento original
+        if distancia > 70:
+            self.estado = 'andando'
+        
+        # 5. Calcular vetor de perseguição normalizado
+            if distancia > 0:
+                dir_x = dx / distancia
+                dir_y = dy / distancia
+            else:
+                dir_x = 0
+                dir_y = 0
+            
+        # 6. Evitar outros inimigos
+            evitar_x, evitar_y = self.calcular_evitar_inimigos()
+        
+        # 7. Combinar vetores
+            self.velocidade_x = (dir_x * self.velocidade) + evitar_x
+            self.velocidade_y = (dir_y * self.velocidade) + evitar_y
+        
+        # 8. Normalizar velocidade combinada
+            comprimento = (self.velocidade_x**2 + self.velocidade_y**2)**0.5
+            if comprimento > 0:
+                fator = self.velocidade / comprimento
+                self.velocidade_x *= fator
+                self.velocidade_y *= fator
+            
+        # 9. Atualizar posição
+            self.rect.x += self.velocidade_x
+            self.rect.y += self.velocidade_y
+        
+        # 10. Atualizar direção do sprite
+            if dx != 0:
+                self.direita = dx > 0
+        else:
+        # 11. Parar se estiver perto o suficiente para atacar
+            self.velocidade_x = 0
+            self.velocidade_y = 0
+            self.estado = 'parado'
 
     def atualizar_animacao(self, dt):
         agora = pygame.time.get_ticks()
@@ -136,6 +189,8 @@ class InimigoBase(pygame.sprite.Sprite):
             self.tempo_dano = pygame.time.get_ticks()
             if self.hp_atual <= 0:
                 self.esta_morto = True
+                self.velocidade_x = 0  # Zera velocidade
+                self.velocidade_y = 0  # Zera velocidade
                 self.estado = 'morrendo'
                 self.indice_animacao = 0
                 self.animacao_morte_concluida = False
@@ -178,3 +233,45 @@ class InimigoBase(pygame.sprite.Sprite):
                 pygame.draw.rect(tela, (30, 30, 30), fundo_escudo_cam, border_radius=2)
                 pygame.draw.rect(tela, cor_escudo, barra_escudo_cam, border_radius=2)
                 pygame.draw.rect(tela, (255, 255, 255), fundo_escudo_cam, width=1, border_radius=2)
+
+            # Adicionar na classe InimigoBase:
+    def calcular_evitar_inimigos(self):
+        evitar_x = 0
+        evitar_y = 0
+        evitar_raio = 70
+        for inimigo in self.grupo_inimigos:  # Adicionar grupo_inimigos no __init__
+            if inimigo != self and not inimigo.esta_morto:
+                dx = inimigo.rect.centerx - self.rect.centerx
+                dy = inimigo.rect.centery - self.rect.centery
+                distancia = (dx**2 + dy**2)**0.5
+                if 0 < distancia < evitar_raio:
+                    fator = (evitar_raio - distancia) / evitar_raio
+                    direcao_x = -dx / distancia
+                    direcao_y = -dy / distancia
+                    evitar_x += direcao_x * fator * self.velocidade * 0.8
+                    evitar_y += direcao_y * fator * self.velocidade * 0.8
+            return evitar_x, evitar_y
+
+    def verificar_colisao(self, tilemap):
+        original_x = self.rect.x
+        original_y = self.rect.y
+    
+    # Movimento horizontal
+        self.rect.x += self.velocidade_x
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.velocidade_x > 0:
+                    self.rect.right = rect.left
+                else:
+                    self.rect.left = rect.right
+                break
+    
+    # Movimento vertical
+        self.rect.y += self.velocidade_y
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.velocidade_y > 0:
+                    self.rect.bottom = rect.top
+                else:
+                    self.rect.top = rect.bottom
+                break
