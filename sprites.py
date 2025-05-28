@@ -1,4 +1,5 @@
-#sprites.py
+# sprites.py
+
 import pygame
 from camera import Camera
 from config import (
@@ -11,26 +12,37 @@ from config import (
 from tilemap import TileMap
 
 class Soldado(pygame.sprite.Sprite):
+    """
+    Classe do personagem principal. Controla animações, ataques, movimentação, dano,
+    experiência, vida e interação com o mapa.
+    """
     def __init__(self, animacoes, grupo_inimigos, grupo_projeteis, tilemap):
+        """
+        Inicializa todos os atributos do Soldado, incluindo vida, ataques,
+        animações, direção, hitbox, grupos e XP.
+        """
         super().__init__()
         self.tilemap = tilemap
         self.animacoes = animacoes
         self.estado = 'parado'
-        self.estado_anterior = 'parado'  # Novo atributo para controle de animação
+        self.estado_anterior = 'parado'
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(topleft=(50, ALTURA // 2))
         self.hitbox_rect = pygame.Rect(0, 0, 30, 50)
         self.hitbox_rect.center = self.rect.center
+
         self.dano_ataque_leve = DANO_ATAQUE_LEVE
         self.dano_ataque_pesado = DANO_ATAQUE_PESADO
         self.dano_arco = DANO_ARCO
+
         self.tempo_animacao = 100
         self.tempo_animacao_morte = 150
+
         self.vel_x = 0
         self.vel_y = 0
         self.direction = pygame.math.Vector2()
-        
+
         self.ataques = {
             'ataque_leve': {
                 'frame_dano': 3,
@@ -54,9 +66,9 @@ class Soldado(pygame.sprite.Sprite):
         self.executando_ataque = False
         self.ultimo_ataque_pesado = 0
         self.ultimo_ataque_arco = 0
+        self.ultimo_ataque_leve = 0
         self.grupo_projeteis = grupo_projeteis
         self.disparar_flecha_pendente = False
-        self.ultimo_ataque_leve = 0
         self.hp_max = HP_MAXIMO
         self.hp_atual = HP_INICIAL
         self.animacao_dano_ativa = False
@@ -74,8 +86,11 @@ class Soldado(pygame.sprite.Sprite):
         self.cor_nivel = (255, 215, 0)
 
     def update(self, teclas, dt):
+        """
+        Função principal de atualização do personagem.
+        Processa morte, movimentação, colisões, dano e animações.
+        """
         agora = pygame.time.get_ticks()
-    
         if self.esta_morto:
             self.processar_morte(agora)
             return
@@ -86,6 +101,9 @@ class Soldado(pygame.sprite.Sprite):
         self.processar_animacoes(agora, teclas)
 
     def processar_morte(self, agora):
+        """
+        Controla a animação de morte do personagem e sinaliza quando ela termina.
+        """
         if not self.animacao_morte_ativa:
             self.animacao_morte_ativa = True
             self.estado = 'morrer'
@@ -97,22 +115,23 @@ class Soldado(pygame.sprite.Sprite):
                 if self.indice_animacao < len(self.animacoes['morrer']) - 1:
                     self.indice_animacao += 1
                 else:
-                    # ✅ Sinaliza que a morte está pronta para transição
                     if not self.animacao_morte_concluida:
                         self.animacao_morte_concluida = True
                         self.tempo_morte_concluida = agora
 
-        # Mantém a última frame da animação
-        frame = self.animacoes['morrer'][min(self.indice_animacao), len(self.animacoes['morrer']) - 1]
+        frame = self.animacoes['morrer'][min(self.indice_animacao, len(self.animacoes['morrer']) - 1)]
         if self.virado_para_esquerda:
             frame = pygame.transform.flip(frame, True, False)
         self.image = frame
 
     def processar_movimento_ataque(self, teclas, agora, dt):
+        """
+        Processa entrada de movimento e ataque, respeitando cooldowns.
+        """
         self.direction.x = 0
         self.direction.y = 0
         novo_estado = 'parado'
-        
+
         if teclas[pygame.K_a]:
             self.direction.x = -1
             self.virado_para_esquerda = True
@@ -149,6 +168,9 @@ class Soldado(pygame.sprite.Sprite):
             self.receber_dano(50)
 
     def iniciar_ataque(self, tipo_ataque, agora):
+        """
+        Inicia uma animação de ataque com base no tipo escolhido.
+        """
         self.estado = tipo_ataque
         self.indice_animacao = 0
         self.executando_ataque = True
@@ -157,6 +179,9 @@ class Soldado(pygame.sprite.Sprite):
             self.disparar_flecha_pendente = True
 
     def processar_dano(self, agora):
+        """
+        Controla a animação de dano e seu tempo.
+        """
         if self.animacao_dano_ativa:
             if agora - self.ultimo_update_dano > self.tempo_animacao:
                 self.ultimo_update_dano = agora
@@ -166,6 +191,9 @@ class Soldado(pygame.sprite.Sprite):
                     self.indice_dano = 0
 
     def processar_animacoes(self, agora, teclas):
+        """
+        Atualiza as animações com base no estado atual do personagem.
+        """
         if self.estado != self.estado_anterior:
             self.indice_animacao = 0
             self.estado_anterior = self.estado
@@ -187,9 +215,11 @@ class Soldado(pygame.sprite.Sprite):
         if self.virado_para_esquerda:
             frame = pygame.transform.flip(frame, True, False)
         self.image = frame
-        
 
     def processar_animacao_ataque(self, agora, teclas):
+        """
+        Controla os quadros da animação de ataque, aplicando dano no momento certo.
+        """
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
 
@@ -198,71 +228,61 @@ class Soldado(pygame.sprite.Sprite):
             else:
                 self.indice_animacao = len(self.animacoes[self.estado]) - 1
 
-        # Aplicar dano/projétil no frame especificado
             if self.indice_animacao == self.ataques[self.estado]['frame_dano']:
                 if self.estado == 'ataque_arco':
-                    self.disparar_flecha(teclas)  # Agora passando teclas como parâmetro
+                    self.disparar_flecha(teclas)
                 else:
                     dano = self.dano_ataque_leve if self.estado == 'ataque_leve' else self.dano_ataque_pesado
                     self.aplicar_dano_corpo_a_corpo(dano)
 
-        # Finalizar animação
             if self.indice_animacao >= len(self.animacoes[self.estado]) - 1:
                 self.indice_animacao = 0
                 self.executando_ataque = False
                 self.estado = 'parado'
 
     def disparar_flecha(self, teclas):
+        """
+        Cria uma flecha com direção baseada nas teclas pressionadas.
+        """
         deslocamento_y = self.ataques['ataque_arco']['deslocamento_flecha_y']
         centro = (self.rect.centerx, self.rect.centery + deslocamento_y)
-        
-        # Determinar direção
         dir_x = -1 if self.virado_para_esquerda else 1
         dir_y = 0
-        
-        # Verificar combinações de teclas
-        if teclas[pygame.K_w]:
-            dir_y = -1  # Cima
-        if teclas[pygame.K_s]:
-            dir_y = 1   # Baixo
-        if teclas[pygame.K_e] and self.virado_para_esquerda:
-            dir_y = -1  # Diagonal superior esquerda
-        if teclas[pygame.K_x] and self.virado_para_esquerda:
-            dir_y = 1   # Diagonal inferior esquerda
-        if teclas[pygame.K_e] and not self.virado_para_esquerda:
-            dir_y = -1  # Diagonal superior direita
-        if teclas[pygame.K_x] and not self.virado_para_esquerda:
-            dir_y = 1  # Diagonal inferior direita
-        
-        # Normalizar direção para velocidade constante
+
+        if teclas[pygame.K_w]: dir_y = -1
+        if teclas[pygame.K_s]: dir_y = 1
+        if teclas[pygame.K_e]: dir_y = -1
+        if teclas[pygame.K_x]: dir_y = 1
+
         if dir_x != 0 and dir_y != 0:
-            fator = 0.7071  # 1/√2 para movimento diagonal
+            fator = 0.7071
             dir_x *= fator
             dir_y *= fator
-        
+
         novo_proj = Projetil(centro, dir_x, dir_y, self.grupo_inimigos, self.dano_arco)
         self.grupo_projeteis.add(novo_proj)
         self.disparar_flecha_pendente = False
 
     def aplicar_dano_corpo_a_corpo(self, dano):
+        """
+        Aplica dano a inimigos que estiverem dentro da hitbox do ataque corpo a corpo.
+        """
         config = self.ataques[self.estado]['hitbox']
         offset_x = -config['offset_x'] if self.virado_para_esquerda else config['offset_x']
-        
         hitbox = pygame.Rect(
             self.rect.centerx + offset_x - (config['largura']//2),
             self.rect.centery + config['offset_y'],
             config['largura'],
             config['altura']
         )
-        
-        # Visualização da hitbox (debug)
-        # pygame.draw.rect(pygame.display.get_surface(), (255,0,0), hitbox, 2)
-        
         for inimigo in self.grupo_inimigos:
             if hitbox.colliderect(inimigo.rect):
                 inimigo.receber_dano(dano)
 
     def receber_dano(self, quantidade):
+        """
+        Reduz a vida do personagem ao tomar dano e ativa a animação de dano.
+        """
         if not self.esta_morto and not self.animacao_dano_ativa:
             self.hp_atual = max(0, self.hp_atual - quantidade)
             if self.hp_atual <= 0:
@@ -273,8 +293,11 @@ class Soldado(pygame.sprite.Sprite):
                 self.ultimo_update_dano = pygame.time.get_ticks()
 
     def draw_hp_bar(self, tela, camera):
+        """
+        Desenha a barra de vida acima do personagem.
+        """
         if not self.esta_morto and not getattr(self, 'animacao_morte_concluida', False):
-            offset_extra_y = -10  # ajuste este valor conforme necessário para subir/descer a barra
+            offset_extra_y = -10
             barra_x = self.rect.centerx - (LARGURA_BARRA // 2)
             barra_y = self.rect.centery + POSICAO_BARRA_OFFSET_Y + offset_extra_y
             proporcao_hp = self.hp_atual / self.hp_max
@@ -287,51 +310,44 @@ class Soldado(pygame.sprite.Sprite):
             fundo_rect_camera = camera.aplicar_rect(fundo_rect)
 
             pygame.draw.rect(tela, COR_HP_PERDIDO, fundo_rect_camera, border_radius=2)
-
-    
-            if largura_atual > 0:  
+            if largura_atual > 0:
                 pygame.draw.rect(tela, COR_HP_ATUAL, barra_rect_camera, border_radius=2)
                 pygame.draw.rect(tela, (255, 255, 255), fundo_rect_camera, width=1, border_radius=2)
 
-
     def draw(self, tela):
+        """
+        Desenha o personagem na tela.
+        """
         tela.blit(self.image, self.rect)
         self.draw_hp_bar(tela)
+
     def draw_hud(self, tela):
-        """Desenha a interface do usuário (barra de XP e nível)"""
-        # Configurações da barra de XP
+        """
+        Desenha o HUD de experiência e nível.
+        """
         largura_max = 200
         altura = 20
         borda = 2
         pos_x = 10
         pos_y = 10
 
-        # Calcula a proporção do XP
         proporcao = self.xp / self.xp_para_prox_nivel
         largura_atual = int(largura_max * proporcao)
 
-        # Desenha o fundo da barra
         pygame.draw.rect(tela, (50, 50, 50), (
-            pos_x - borda,
-            pos_y - borda,
-            largura_max + 2*borda,
-            altura + 2*borda
+            pos_x - borda, pos_y - borda,
+            largura_max + 2*borda, altura + 2*borda
         ))
-        
-        # Barra de XP
-        pygame.draw.rect(tela, self.cor_xp, (
-            pos_x,
-            pos_y,
-            largura_atual,
-            altura
-        ))
+        pygame.draw.rect(tela, self.cor_xp, (pos_x, pos_y, largura_atual, altura))
 
-        # Texto do nível
         fonte = pygame.font.Font(None, 24)
         texto = fonte.render(f"Nv. {self.nivel}", True, self.cor_nivel)
         tela.blit(texto, (pos_x + largura_max + 10, pos_y - 3))
 
     def ganhar_xp(self, quantidade):
+        """
+        Adiciona experiência ao jogador e verifica se ele sobe de nível.
+        """
         self.xp += quantidade
         while self.xp >= self.xp_para_prox_nivel:
             self.subir_nivel()
@@ -339,74 +355,73 @@ class Soldado(pygame.sprite.Sprite):
             print(f"Subiu para o nível {self.nivel}!")
 
     def subir_nivel(self):
+        """
+        Incrementa o nível do personagem e melhora seus atributos.
+        """
         self.nivel += 1
         self.xp_para_prox_nivel = int(self.xp_para_prox_nivel * 1.5)
         self.hp_max += 20
         self.hp_atual = self.hp_max
-
-        # Melhoria de atributos
-        self.dano_ataque_leve *= 3  
+        self.dano_ataque_leve *= 3
         self.dano_ataque_pesado *= 3
         self.dano_arco *= 3
-    
-    
+
     def verificar_colisao(self):
-    # Salva a posição original para testes
+        """
+        Detecta colisões com o mapa e impede o personagem de atravessar paredes.
+        """
         original_x = self.hitbox_rect.x
         original_y = self.hitbox_rect.y
-    
+
         self.hitbox_rect.x += self.vel_x
         colidiu = False
         for rect in self.tilemap.collision_rects:
             if self.hitbox_rect.colliderect(rect):
-                if self.vel_x > 0:  # Movendo para direita
+                if self.vel_x > 0:
                     self.hitbox_rect.right = rect.left
-                elif self.vel_x < 0:  # Movendo para esquerda
+                elif self.vel_x < 0:
                     self.hitbox_rect.left = rect.right
                 colidiu = True
-                break  # Sai após primeira colisão relevante
-    
+                break
 
         self.hitbox_rect.y += self.vel_y
         for rect in self.tilemap.collision_rects:
             if self.hitbox_rect.colliderect(rect):
-                if self.vel_y > 0:  # Movendo para baixo
+                if self.vel_y > 0:
                     self.hitbox_rect.bottom = rect.top
-                elif self.vel_y < 0:  # Movendo para cima
+                elif self.vel_y < 0:
                     self.hitbox_rect.top = rect.bottom
                 colidiu = True
-                break  # Sai após primeira colisão relevante
-    
+                break
 
         self.rect.center = self.hitbox_rect.center
         if colidiu:
             self.vel_x = 0
             self.vel_y = 0
-    
+
 class Projetil(pygame.sprite.Sprite):
+    """
+    Classe que representa a flecha disparada pelo jogador.
+    """
     def __init__(self, position, direcao_x, direcao_y, grupo_inimigos, dano):
         super().__init__()
         try:
             self.image = pygame.image.load('assets/projetil_arco/flecha.png').convert_alpha()
-            
-            # Rotacionar a flecha com base na direção
             angulo = 0
             if direcao_y == -1:
-                angulo = 90 if direcao_x == 0 else 45  # Para cima ou diagonal superior
+                angulo = 90 if direcao_x == 0 else 45
             elif direcao_y == 1:
-                angulo = -90 if direcao_x == 0 else -45  # Para baixo ou diagonal inferior
-            
-            if direcao_x == -1:  # Esquerda
+                angulo = -90 if direcao_x == 0 else -45
+            if direcao_x == -1:
                 angulo += 180
                 self.image = pygame.transform.flip(self.image, True, False)
-            
+
             self.image = pygame.transform.rotate(self.image, angulo)
-            
             self.rect = self.image.get_rect(center=position)
         except Exception as e:
             print(f"Erro ao carregar flecha: {e}")
             self.kill()
-        
+
         self.velocidade = VELOCIDADE_PROJETIL
         self.direcao_x = direcao_x
         self.direcao_y = direcao_y
@@ -414,20 +429,18 @@ class Projetil(pygame.sprite.Sprite):
         self.dano = dano
         self.mask = pygame.mask.from_surface(self.image)
 
-
-
     def update(self, tilemap):
-        # Movimento
+        """
+        Atualiza a posição da flecha e verifica colisão com inimigos ou paredes.
+        """
         self.rect.x += self.velocidade * self.direcao_x
         self.rect.y += self.velocidade * self.direcao_y
-        
-        # Colisão com inimigos (código simplificado)
+
         for inimigo in pygame.sprite.spritecollide(self, self.grupo_inimigos, False, pygame.sprite.collide_mask):
             inimigo.receber_dano(self.dano)
             self.kill()
             return
-        
-        # Colisão com o mapa
+
         for rect in tilemap.collision_rects:
             if self.rect.colliderect(rect):
                 self.kill()

@@ -1,4 +1,5 @@
-#game_manager.py
+# game_manager.py
+
 import pygame
 from config import JOGANDO, GAME_OVER, CARREGANDO, FPS, FUNDO_BRANCO
 from sprites import Soldado
@@ -9,10 +10,12 @@ from inimigos_codigos.esqueleto import Esqueleto
 from inimigos_codigos.boss1.base_boss1 import BossBase
 from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura
 from inimigos_codigos.Inimigos_mapa2.esqueleto_arqueiro import EsqueletoArqueiro
-from inimigos_codigos.Inimigos_mapa2.boss2 import Boss2
+from inimigos_codigos.Inimigos_mapa2.boss2 import Boss2  # Novo boss da fase 2
 
+# Classe principal que gerencia o estado do jogo por fase
 class GameManager:
     def __init__(self, janela, animacoes, level_atual=1):
+        # Inicializa atributos e estado inicial
         self.janela = janela
         self.animacoes = animacoes
         self.estado = CARREGANDO
@@ -20,28 +23,35 @@ class GameManager:
         self.nivel_inicial = 1
         self.clock = pygame.time.Clock()
 
+        # Componentes principais da fase
         self.tilemap = None
         self.grupo_inimigos = None
         self.grupo_projeteis = None
         self.soldado = None
         self.camera = None
+
+        # Controle de progresso e transição
         self.boss_derrotado = False
         self.novas_telas_executadas = False
         self.level_ao_morrer = self.level_atual
 
     def executar(self):
-        # ✅ Verifica se o soldado está morto ANTES de processar o estado atual
+        """
+        Executa o estado atual do jogo, controlando transições e mortes.
+        """
+        # Se o jogador morreu, direciona imediatamente para o menu pós-jogo
         if self.soldado and self.soldado.esta_morto:
-            # Garante que a animação de morte foi concluída
             if self.soldado.animacao_morte_concluida:
                 self.level_ao_morrer = self.level_atual
-                return "menu_pos_jogo"  # Força a transição
+                return "menu_pos_jogo"
 
+        # Carregamento inicial da fase
         if self.estado == CARREGANDO:
             if not self.carregar_level():
                 return GAME_OVER
             self.estado = JOGANDO
 
+        # Executa o loop da fase
         estado_jogo = self.loop_jogo()
 
         if estado_jogo == GAME_OVER or (self.soldado and self.soldado.esta_morto):
@@ -50,14 +60,20 @@ class GameManager:
         return estado_jogo
 
     def iniciar_sequencia_telas(self):
+        """
+        Retorna qual tela deve ser exibida após conclusão de fase.
+        """
         if self.level_atual == 1:
             return "fase_concluida1"
         elif self.level_atual == 2:
-            return "tela1"  # ✅ Direciona para a primeira das telas finais
+            return "tela1"
         else:
             return "menu"
 
     def carregar_level(self):
+        """
+        Carrega o mapa, soldado, câmera e inimigos da fase atual.
+        """
         try:
             mapa_path = f'Mapas/Mapa{self.level_atual}/mapa{self.level_atual}.tmx'
             print(f"[DEBUG] Carregando mapa: {mapa_path}")
@@ -85,6 +101,9 @@ class GameManager:
             return False
 
     def processar_spawns(self):
+        """
+        Lê os objetos definidos no mapa (.tmx) e instancia os elementos no jogo.
+        """
         for obj in self.tilemap.tmxdata.objects:
             if obj.name == 'spawn_soldado':
                 spawn_rect = pygame.Rect(
@@ -95,51 +114,35 @@ class GameManager:
                 )
                 self.soldado.rect.center = spawn_rect.center
                 self.soldado.hitbox_rect.center = spawn_rect.center
+
             elif obj.name == 'spawn_orc':
-                OrcNormal(
-                    obj.x * self.tilemap.zoom,
-                    obj.y * self.tilemap.zoom,
-                    self.soldado,
-                    self.grupo_inimigos
-                ).add(self.grupo_inimigos)
+                OrcNormal(obj.x * self.tilemap.zoom, obj.y * self.tilemap.zoom,
+                          self.soldado, self.grupo_inimigos).add(self.grupo_inimigos)
+
             elif obj.name == 'spawn_esqueleto':
-                Esqueleto(
-                    obj.x * self.tilemap.zoom,
-                    obj.y * self.tilemap.zoom,
-                    self.soldado,
-                    self.grupo_inimigos
-                ).add(self.grupo_inimigos)
+                Esqueleto(obj.x * self.tilemap.zoom, obj.y * self.tilemap.zoom,
+                          self.soldado, self.grupo_inimigos).add(self.grupo_inimigos)
+
             elif obj.name == 'spawn_boss':
-                BossBase(
-                    obj.x * self.tilemap.zoom,
-                    obj.y * self.tilemap.zoom,
-                    self.soldado,
-                    self.grupo_inimigos
-                ).add(self.grupo_inimigos)
+                BossBase(obj.x * self.tilemap.zoom, obj.y * self.tilemap.zoom,
+                         self.soldado, self.grupo_inimigos).add(self.grupo_inimigos)
+
             elif obj.name == 'spawn_orc_armadura':
-                OrcArmadura(
-                    obj.x * self.tilemap.zoom,
-                    obj.y * self.tilemap.zoom,
-                    self.soldado,
-                    self.grupo_inimigos
-                ).add(self.grupo_inimigos)
+                OrcArmadura(obj.x * self.tilemap.zoom, obj.y * self.tilemap.zoom,
+                            self.soldado, self.grupo_inimigos).add(self.grupo_inimigos)
+
             elif obj.name == 'spawn_esqueleto_arqueiro':
-                EsqueletoArqueiro(
-                    obj.x * self.tilemap.zoom,
-                    obj.y * self.tilemap.zoom,
-                    self.soldado,
-                    self.grupo_projeteis,
-                    self.grupo_inimigos
-                ).add(self.grupo_inimigos)
+                EsqueletoArqueiro(obj.x * self.tilemap.zoom, obj.y * self.tilemap.zoom,
+                                  self.soldado, self.grupo_projeteis, self.grupo_inimigos).add(self.grupo_inimigos)
+
             elif obj.name == 'spawn_boss2':
-                Boss2(
-                    obj.x * self.tilemap.zoom,
-                    obj.y * self.tilemap.zoom,
-                    self.soldado,
-                    self.grupo_inimigos
-                ).add(self.grupo_inimigos)
+                Boss2(obj.x * self.tilemap.zoom, obj.y * self.tilemap.zoom,
+                      self.soldado, self.grupo_inimigos).add(self.grupo_inimigos)
 
     def loop_jogo(self):
+        """
+        Loop principal de execução da fase.
+        """
         while self.estado == JOGANDO:
             dt = self.clock.tick(FPS) / 1000
 
@@ -147,10 +150,9 @@ class GameManager:
                 return GAME_OVER
 
             self.atualizar_entidades(dt)
-            
-            # ✅ Verifica se o soldado morreu DURANTE o loop
+
             if self.soldado and self.soldado.esta_morto:
-                return "menu_pos_jogo"  # Sai imediatamente do loop
+                return "menu_pos_jogo"
 
             estado_colisao = self.verificar_colisoes()
             if estado_colisao:
@@ -160,7 +162,11 @@ class GameManager:
             self.desenhar()
 
         return self.estado
+
     def processar_eventos(self):
+        """
+        Trata eventos como fechar a janela.
+        """
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 self.estado = GAME_OVER
@@ -168,6 +174,9 @@ class GameManager:
         return True
 
     def atualizar_entidades(self, dt):
+        """
+        Atualiza jogador, inimigos e projéteis com base no tempo.
+        """
         teclas = pygame.key.get_pressed()
         if self.soldado:
             self.soldado.update(teclas, dt)
@@ -176,26 +185,25 @@ class GameManager:
         self.grupo_inimigos.update(pygame.time.get_ticks())
         self.grupo_projeteis.update(self.tilemap)
 
-        # ✅ Verificar inimigos mortos e conceder XP
         for inimigo in self.grupo_inimigos:
             if inimigo.esta_morto and not inimigo.xp_entregue:
                 self.soldado.ganhar_xp(inimigo.xp_drop)
                 inimigo.xp_entregue = True
 
-    # game_manager.py - Método verificar_colisoes
     def verificar_colisoes(self):
+        """
+        Verifica se todos os bosses da fase foram derrotados e define transição.
+        """
         boss_vivo = False
-        # Verifica se há algum Boss vivo
         for inimigo in self.grupo_inimigos:
             if isinstance(inimigo, (BossBase, Boss2)):
                 if not inimigo.esta_morto:
                     boss_vivo = True
-                    print(f"[DEBUG] Boss vivo: {inimigo}")  # Novo debug
-                    break  # Interrompe se encontrar um Boss vivo
+                    print(f"[DEBUG] Boss vivo: {inimigo}")
+                    break
 
-        # Se não há Boss vivo e a sequência não foi iniciada
         if not boss_vivo and not self.novas_telas_executadas:
-            print(f"[DEBUG] Todos os Bosses derrotados! Nível: {self.level_atual}")  # Novo debug
+            print(f"[DEBUG] Todos os Bosses derrotados! Nível: {self.level_atual}")
             if self.level_atual == 1:
                 self.novas_telas_executadas = True
                 return "fase_concluida1"
@@ -206,20 +214,28 @@ class GameManager:
         return None
 
     def iniciar_transicao_fase(self):
+        """
+        Controla a transição de uma fase para a próxima.
+        """
         if self.level_atual == 1:
             self.novas_telas_executadas = True
             self.level_atual += 1
             self.estado = CARREGANDO
         elif self.level_atual == 2:
-            # ✅ Correção: apenas sinaliza que o boss foi derrotado
             self.boss_derrotado = True
-            self.novas_telas_executadas = False  # Garante que a sequência será executada
+            self.novas_telas_executadas = False
 
     def atualizar_camera(self):
+        """
+        Atualiza a posição da câmera baseada na posição do soldado.
+        """
         if self.camera and self.soldado:
             self.camera.update(self.soldado)
 
     def desenhar(self):
+        """
+        Renderiza todos os elementos do jogo na tela.
+        """
         self.janela.fill(FUNDO_BRANCO)
         self.tilemap.render(self.janela, self.camera)
 

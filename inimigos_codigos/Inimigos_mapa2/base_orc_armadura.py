@@ -1,4 +1,6 @@
-#base_orc_armadura.py
+# Arquivo: base_orc_armadura.py
+# Classe base para inimigo "Orc com armadura" com sistema de escudo, animações, perseguição, ataque e colisão
+
 import pygame
 import os
 import math
@@ -11,42 +13,47 @@ from config import (
 class InimigoBase(pygame.sprite.Sprite):
     def __init__(self, x, y, hp_max, velocidade, alvo):
         super().__init__()
+        # Inicializa atributos principais
         self.animacoes = self.carregar_animacoes()
         self.estado = 'parado'
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(center=(x, y))
         self.mask = pygame.mask.from_surface(self.image)
+
+        # Atributos de status
         self.hp_max = hp_max
         self.hp_atual = hp_max
         self.velocidade = velocidade
         self.alvo = alvo
         self.tempo_animacao = 100
         self.ultimo_update = pygame.time.get_ticks()
+
+        # Controle de estados
         self.esta_morto = False
         self.esta_atacando = False
         self.tempo_dano = 0
         self.animacao_morte_concluida = False
         self.direita = True
         self.xp_entregue = False
+
+        # Sistema de escudo
         self.escudo_hp = 0
         self.escudo_hp_max = 0
         self.escudo_ativo = False
         self.tempo_bloqueio = 0
+
+        # Movimento e perseguição
         self.velocidade_x = 0
         self.velocidade_y = 0
         self.raio_perseguicao = 200
 
     def carregar_animacoes(self):
+        # Carrega os frames de cada animação do orc blindado
         animacoes = {
-            'parado': [],
-            'andando': [],
-            'morrendo': [],
-            'ataque1': [],
-            'ataque2': [],
-            'ataque3': [],
-            'dano': [],
-            'bloqueio': []
+            'parado': [], 'andando': [], 'morrendo': [],
+            'ataque1': [], 'ataque2': [], 'ataque3': [],
+            'dano': [], 'bloqueio': []
         }
 
         def carregar_frames(pasta, prefixo, inicio, fim, escala=4):
@@ -70,11 +77,13 @@ class InimigoBase(pygame.sprite.Sprite):
         return animacoes
 
     def verificar_distancia_ataque(self):
+        # Retorna True se a distância ao alvo for menor ou igual a 70 pixels
         dx = self.alvo.rect.centerx - self.rect.centerx
         dy = self.alvo.rect.centery - self.rect.centery
         return (dx**2 + dy**2)**0.5 <= 70
 
     def update(self, dt):
+        # Atualiza estado do inimigo
         if not self.esta_morto:
             self.perseguir_alvo()
             self.atualizar_animacao(dt)
@@ -90,6 +99,7 @@ class InimigoBase(pygame.sprite.Sprite):
             self.estado = 'parado'
 
     def perseguir_alvo(self):
+        # Move o inimigo em direção ao alvo se estiver dentro do raio de perseguição
         if (self.esta_morto or 
             self.estado in ['dano', 'bloqueio'] or 
             not self.alvo or 
@@ -110,21 +120,13 @@ class InimigoBase(pygame.sprite.Sprite):
 
         if distancia > 70:
             self.estado = 'andando'
-
-            if distancia > 0:
-                dir_x = dx / distancia
-                dir_y = dy / distancia
-            else:
-                self.velocidade_x = 0
-                self.velocidade_y = 0
-                if not self.esta_atacando and self.estado not in ['ataque1', 'ataque2', 'ataque3', 'dano', 'bloqueio']:
-                    self.estado = 'parado'
-
+            dir_x = dx / distancia
+            dir_y = dy / distancia
             evitar_x, evitar_y = self.calcular_evitar_inimigos()
             self.velocidade_x = (dir_x * self.velocidade) + evitar_x
             self.velocidade_y = (dir_y * self.velocidade) + evitar_y
 
-            # CORREÇÃO: Normalização ajustada para priorizar perseguição
+            # Normaliza velocidade final
             velocidade_total = math.hypot(self.velocidade_x, self.velocidade_y)
             if velocidade_total > self.velocidade:
                 self.velocidade_x = (self.velocidade_x / velocidade_total) * self.velocidade
@@ -132,21 +134,19 @@ class InimigoBase(pygame.sprite.Sprite):
 
             self.rect.x += self.velocidade_x
             self.rect.y += self.velocidade_y
-
-            if dx != 0:
-                self.direita = dx > 0
+            self.direita = dx > 0
         else:
             self.velocidade_x = 0
             self.velocidade_y = 0
             if self.estado not in ['ataque1', 'ataque2', 'ataque3', 'dano', 'bloqueio']:
                 self.estado = 'parado'
 
-        # CORREÇÃO: Forçar verificação de ataque após movimento
         distancia_pos = math.hypot(dx, dy)
         if distancia_pos <= 70 and not self.esta_atacando:
             self.iniciar_ataque_aleatorio(pygame.time.get_ticks())
 
     def atualizar_animacao(self, dt):
+        # Controla as animações do inimigo de acordo com seu estado
         agora = pygame.time.get_ticks()
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
@@ -171,6 +171,7 @@ class InimigoBase(pygame.sprite.Sprite):
                     self.alvo.receber_dano(self.dano)
 
     def receber_dano(self, quantidade):
+        # Aplica dano ao inimigo, levando em conta escudo ativo
         if not self.esta_morto and not self.animacao_morte_concluida:
             if self.escudo_ativo:
                 self.escudo_hp = max(0, self.escudo_hp - quantidade)
@@ -193,6 +194,7 @@ class InimigoBase(pygame.sprite.Sprite):
                 self.animacao_morte_concluida = False
 
     def draw_hp_bar(self, tela, camera):
+        # Desenha a barra de vida e escudo na tela
         if not self.esta_morto and not getattr(self, 'animacao_morte_concluida', False):
             offset_extra_y = -10
             barra_x = self.rect.centerx - (LARGURA_BARRA // 2)
@@ -229,8 +231,8 @@ class InimigoBase(pygame.sprite.Sprite):
                 pygame.draw.rect(tela, cor_escudo, barra_escudo_cam, border_radius=2)
                 pygame.draw.rect(tela, (255, 255, 255), fundo_escudo_cam, width=1, border_radius=2)
 
-    # CORREÇÃO PRINCIPAL: Fator de evitação reduzido para 0.5
     def calcular_evitar_inimigos(self):
+        # Calcula força de repulsão entre inimigos próximos para evitar sobreposição
         evitar_x = 0
         evitar_y = 0
         evitar_raio = 70
@@ -239,14 +241,15 @@ class InimigoBase(pygame.sprite.Sprite):
                 dx = inimigo.rect.centerx - self.rect.centerx
                 dy = inimigo.rect.centery - self.rect.centery
                 distancia = math.hypot(dx, dy)
-            
+
                 if 0 < distancia < evitar_raio:
                     fator = (evitar_raio - distancia) / evitar_raio
-                    evitar_x += (-dx/distancia) * fator * self.velocidade * 0.5  # ← CORREÇÃO
-                    evitar_y += (-dy/distancia) * fator * self.velocidade * 0.5   # ← CORREÇÃO
+                    evitar_x += (-dx/distancia) * fator * self.velocidade * 0.5
+                    evitar_y += (-dy/distancia) * fator * self.velocidade * 0.5
         return evitar_x, evitar_y
 
     def verificar_colisao(self, tilemap):
+        # Verifica e corrige colisões com paredes
         original_x = self.rect.x
         self.rect.x += self.velocidade_x
         colidiu_x = False

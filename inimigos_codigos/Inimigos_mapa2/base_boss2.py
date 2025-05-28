@@ -1,4 +1,3 @@
-#base_boss2.py
 import pygame
 import os
 import math
@@ -11,6 +10,7 @@ from inimigos_codigos.base import InimigoBase
 
 class Boss2Base(InimigoBase):
     def __init__(self, x, y, alvo, inimigos_group):
+        # Inicializa o boss2 com vida alta, atributos de perseguição e ataque
         super().__init__(x, y, hp_max=6000, velocidade=0.7, alvo=alvo, inimigos_group=inimigos_group)
         self.image = None
         self.rect = pygame.Rect(0, 0, 0, 0)
@@ -40,20 +40,21 @@ class Boss2Base(InimigoBase):
         self.velocidade_y = 0
         self.raio_perseguicao = 500
         self.inimigos_group = inimigos_group
-        
 
     def carregar_animacoes(self):
+        # Carrega os frames de cada animação do boss a partir dos arquivos
         animacoes = {
             'parado': [],
             'andando': [],
             'morrendo': [],
-            'ataque_fraco': [],  # ← Alterado de 'ataque1'
-            'ataque_pesado': [],  # ← Alterado de 'ataque2'
-            'ataque_especial': [],  # ← Alterado de 'ataque3'
+            'ataque_fraco': [],
+            'ataque_pesado': [],
+            'ataque_especial': [],
             'dano': []
         }
 
         def carregar_frames(pasta, prefixo, qtd_frames, escala=15):
+            # Função auxiliar para carregar os frames de uma pasta específica
             frames = []
             for i in range(1, qtd_frames + 1):
                 caminho = os.path.join(
@@ -76,46 +77,46 @@ class Boss2Base(InimigoBase):
         return animacoes
 
     def draw(self, surface):
+        # Desenha o boss na superfície (tela) do jogo
         surface.blit(self.image, self.rect.topleft)
 
     def perseguir_alvo(self):
-    # Zera as velocidades SEMPRE (antes de qualquer verificação)
+        # Responsável por mover o boss em direção ao jogador
         self.velocidade_x = 0  
         self.velocidade_y = 0  
 
         if self.esta_atacando:
-            return  # ⭐️ Retorna imediatamente se estiver atacando
+            return
 
-    # Restante do código de perseguição (só executa se NÃO estiver atacando)
         if not self.esta_morto and self.estado != 'dano' and self.alvo and not self.alvo.esta_morto:
             dx = self.alvo.rect.centerx - self.rect.centerx
             dy = self.alvo.rect.centery - self.rect.centery
             distancia = (dx**2 + dy**2)**0.5
 
             if distancia <= self.raio_perseguicao:
-                if distancia > 50:  # Se está longe o suficiente para se mover
+                if distancia > 50:
                     self.estado = 'andando'
-                    if dx != 0:  # Só muda direção se houver movimento horizontal
+                    if dx != 0:
                         self.direita = dx > 0
-                    # Calcula novas velocidades
                         self.velocidade_x = (dx / distancia) * self.velocidade
                         self.velocidade_y = (dy / distancia) * self.velocidade
-                    # Aplica o movimento
                         self.rect.x += self.velocidade_x
                         self.rect.y += self.velocidade_y
                     else:
-                        self.estado = 'parado'  # Se não há movimento horizontal, fica parado
-                else:  # Se está muito perto, para
+                        self.estado = 'parado'
+                else:
                     self.estado = 'parado'
-            else:  # Se está fora do raio de perseguição, para
+            else:
                 self.estado = 'parado'
 
     def verificar_distancia_ataque(self):
+        # Verifica se o jogador está dentro do alcance de ataque
         dx = self.alvo.rect.centerx - self.rect.centerx
         dy = self.alvo.rect.centery - self.rect.centery
         return (dx**2 + dy**2)**0.5 <= self.distancia_ataque
 
     def verificar_ataques(self):
+        # Define qual tipo de ataque está disponível e o executa
         agora = pygame.time.get_ticks()
         if self.esta_morto or self.esta_atacando:
             return
@@ -133,6 +134,7 @@ class Boss2Base(InimigoBase):
                 self.iniciar_ataque(tipo_ataque, agora)
 
     def iniciar_ataque(self, tipo_ataque, tempo_atual):
+        # Inicializa a animação e atributos do ataque escolhido
         self.estado_anterior = tipo_ataque
         self.esta_atacando = True
         self.estado = tipo_ataque
@@ -148,6 +150,7 @@ class Boss2Base(InimigoBase):
             self.dano = self.dano_ataque_especial
 
     def update(self, dt):
+        # Atualiza o comportamento do boss a cada frame
         agora = pygame.time.get_ticks()
         if not self.esta_morto:
             self.perseguir_alvo()
@@ -159,19 +162,17 @@ class Boss2Base(InimigoBase):
             self.estado = 'parado'
 
     def atualizar_animacao(self, dt):
+        # Controla os frames da animação do boss
         agora = pygame.time.get_ticks()
         if agora - self.ultimo_update >= self.tempo_animacao:
             self.ultimo_update = agora
         
-        # Atualiza o frame da animação conforme o estado
             frames = self.animacoes[self.estado]
             frame_atual = frames[self.indice_animacao]
         
-        # Inverte a imagem se necessário (direita/esquerda)
             if not self.direita:
                 frame_atual = pygame.transform.flip(frame_atual, True, False)
-        
-            self.image = frame_atual  # ⭐️ **Linha adicionada: atualiza a imagem!**
+            self.image = frame_atual
         
             if self.estado == 'morrendo':
                 if self.indice_animacao < len(frames) - 1:
@@ -185,7 +186,6 @@ class Boss2Base(InimigoBase):
                 if self.indice_animacao == self.frame_dano.get(self.estado, 0):
                     if pygame.sprite.collide_rect(self, self.alvo):
                         self.alvo.receber_dano(self.dano)
-            
                 if self.indice_animacao >= len(self.animacoes[self.estado]) - 1:
                     self.esta_atacando = False
                     self.estado = 'parado'
@@ -202,10 +202,10 @@ class Boss2Base(InimigoBase):
                 self.estado = 'parado'
 
     def verificar_colisao(self, tilemap):
+        # Verifica e ajusta a posição do boss em caso de colisão com o mapa
         original_x = self.hitbox_rect.x
         original_y = self.hitbox_rect.y
     
-    # Movimento horizontal
         self.hitbox_rect.x += self.velocidade_x
         for rect in tilemap.collision_rects:
             if self.hitbox_rect.colliderect(rect):
@@ -215,7 +215,6 @@ class Boss2Base(InimigoBase):
                     self.hitbox_rect.left = rect.right
                 break
     
-    # Movimento vertical
         self.hitbox_rect.y += self.velocidade_y
         for rect in tilemap.collision_rects:
             if self.hitbox_rect.colliderect(rect):

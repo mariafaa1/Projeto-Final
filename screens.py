@@ -1,10 +1,11 @@
-#screens.py
+# screens.py
+
 import pygame
 from assets import carregar_animacoes
 from config import LARGURA, ALTURA, FUNDO_BRANCO, JOGANDO, GAME_OVER
 import sys
 
-
+# Função auxiliar para tratamento genérico de eventos de saída ou retorno ao menu
 def tratar_eventos(self, eventos):
     for evento in eventos:
         if evento.type == pygame.QUIT:
@@ -13,20 +14,22 @@ def tratar_eventos(self, eventos):
             if evento.key == pygame.K_ESCAPE:
                 self.proxima_tela = "menu"
 
+# Classe base para telas. Outras telas herdam dela.
 class TelaBase:
     def __init__(self, janela):
         self.janela = janela
-        self.proxima_tela = None
+        self.proxima_tela = None  # Define qual será a próxima tela (quando aplicável)
 
     def tratar_eventos(self, eventos):
-        pass  # Implementação base vazia
+        pass  # Método base vazio
 
     def atualizar(self):
-        pass  # Implementação base vazia
+        pass  # Método base vazio
 
     def desenhar(self):
-        pass  # Implementação base vazia
+        pass  # Método base vazio
 
+# Tela inicial com a imagem de fundo
 class MenuInicial(TelaBase):
     def __init__(self, janela):
         super().__init__(janela)
@@ -38,14 +41,17 @@ class MenuInicial(TelaBase):
             sys.exit()
 
     def tratar_eventos(self, eventos):
+        # Pressionar ENTER leva à primeira tela da história
         for evento in eventos:
             if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
                 self.proxima_tela = "historia1"
 
     def desenhar(self):
+        # Desenha a imagem do menu
         self.janela.blit(self.imagem, (0, 0))
         pygame.display.flip()
 
+# Tela de carregamento que simula progresso e carrega as animações
 class TelaCarregamento:
     def __init__(self, janela):
         self.janela = janela
@@ -58,38 +64,37 @@ class TelaCarregamento:
         self.texto_status = ""
 
     def atualizar(self):
+        # Carrega recursos uma única vez
         if not self.carregado:
             self.carregar_recursos()
             self.carregado = True
-            self.proxima_tela = "jogo"  # Mantém a transição para o jogo
+            self.proxima_tela = "jogo"
 
     def carregar_recursos(self):
+        # Etapas visuais simulando progresso
         try:
-            # Estágio 1: Carregar animações básicas
             self.texto_status = "Carregando personagem..."
             self.progresso = 1
             self.desenhar()
             pygame.display.update()
             
-            # Estágio 2: Inimigos
             self.texto_status = "Carregando inimigos..."
             self.progresso = 2
             self.desenhar()
             pygame.display.update()
             
-            # Estágio 3: Chefões
             self.texto_status = "Carregando chefões..."
             self.progresso = 3
             self.animacoes = carregar_animacoes()
             self.desenhar()
             pygame.display.update()
-
         except Exception as e:
             print(f"Falha crítica no carregamento: {e}")
             pygame.quit()
             sys.exit()
 
     def desenhar(self):
+        # Exibe a barra de carregamento e texto de status
         self.janela.fill((30, 30, 40))
         largura_barra = 400
         x = (LARGURA - largura_barra) // 2
@@ -102,10 +107,12 @@ class TelaCarregamento:
         self.janela.blit(texto, texto_rect)
 
     def tratar_eventos(self, eventos):
+        # Permite encerrar o jogo durante o carregamento
         for evento in eventos:
             if evento.type == pygame.QUIT:
                 self.proxima_tela = "sair"
 
+# Tela usada para mostrar partes da história entre as fases
 class TelaHistoria(TelaBase):
     def __init__(self, janela, imagem_path, proxima_tela):
         super().__init__(janela)
@@ -114,6 +121,7 @@ class TelaHistoria(TelaBase):
         self.proxima_tela_definida = proxima_tela
 
     def tratar_eventos(self, eventos):
+        # Pressionar ENTER avança para a próxima tela
         for evento in eventos:
             if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
                 self.proxima_tela = self.proxima_tela_definida
@@ -122,6 +130,7 @@ class TelaHistoria(TelaBase):
         self.janela.blit(self.imagem, (0, 0))
         pygame.display.flip()
 
+# Tela com a imagem de controles do jogo
 class TelaControles(TelaBase):
     def __init__(self, janela):
         super().__init__(janela)
@@ -141,10 +150,10 @@ class TelaControles(TelaBase):
         self.janela.blit(self.imagem, (0, 0))
         pygame.display.flip()
 
+# Tela que executa o jogo em si usando o GameManager
 class TelaJogo(TelaBase):
     def __init__(self, janela, animacoes, game_manager_class, level_atual=1):
         super().__init__(janela)
-        # Agora GameManager recebe o level_atual corretamente
         self.game_manager = game_manager_class(janela, animacoes, level_atual)
         self.proxima_tela = None
 
@@ -154,6 +163,7 @@ class TelaJogo(TelaBase):
                 self.proxima_tela = "sair"
 
     def atualizar(self):
+        # Atualiza o estado do jogo e define qual será a próxima tela
         estado = self.game_manager.executar()
         if estado == "menu_pos_jogo":
             self.proxima_tela = "menu_pos_jogo"
@@ -161,12 +171,12 @@ class TelaJogo(TelaBase):
             self.proxima_tela = "menu"
         elif estado == "fase_concluida1":
             self.proxima_tela = "fase_concluida1"
-        elif estado == "tela1":  # Alterado de "tela1_fase2" para "tela1"
+        elif estado == "tela1":
             self.proxima_tela = "tela1"
         elif estado == "game_over":
             self.proxima_tela = "menu_pos_jogo"
 
-
+# Tela de opções após o jogador perder
 class TelaMenuPosJogo(TelaBase):
     def __init__(self, janela):
         super().__init__(janela)
@@ -184,14 +194,10 @@ class TelaMenuPosJogo(TelaBase):
         self.inicializar_botoes()
 
     def inicializar_botoes(self):
+        # Define retângulos de clique para cada botão
         y = ALTURA // 2 - 100
         for opcao in self.opcoes:
-            rect = pygame.Rect(
-                (LARGURA - 300) // 2,
-                y,
-                300,
-                60
-            )
+            rect = pygame.Rect((LARGURA - 300) // 2, y, 300, 60)
             self.botoes.append({
                 "rect": rect,
                 "texto": opcao["texto"],
@@ -201,6 +207,7 @@ class TelaMenuPosJogo(TelaBase):
             y += 80
 
     def tratar_eventos(self, eventos):
+        # Detecta cliques nos botões e define a próxima tela
         mouse_pos = pygame.mouse.get_pos()
         for evento in eventos:
             if evento.type == pygame.MOUSEBUTTONDOWN:
@@ -211,12 +218,12 @@ class TelaMenuPosJogo(TelaBase):
 
     def desenhar(self):
         self.janela.fill((30, 30, 40))
-        
+
         # Título
         titulo = self.fonte_titulo.render("Game Over", True, (255, 0, 0))
-        titulo_rect = titulo.get_rect(center=(LARGURA//2, 150))
+        titulo_rect = titulo.get_rect(center=(LARGURA // 2, 150))
         self.janela.blit(titulo, titulo_rect)
-        
+
         # Botões
         for botao in self.botoes:
             cor = self.cor_hover if botao["hover"] else self.cor_base
@@ -224,9 +231,10 @@ class TelaMenuPosJogo(TelaBase):
             texto = self.fonte_botoes.render(botao["texto"], True, (0, 0, 0))
             texto_rect = texto.get_rect(center=botao["rect"].center)
             self.janela.blit(texto, texto_rect)
-        
+
         pygame.display.flip()
 
+# Tela exibida após conclusão de fase (opcional se for usada)
 class TelaFaseConcluida(TelaBase):
     def __init__(self, janela, imagem_path, proxima_tela):
         super().__init__(janela)
@@ -247,6 +255,7 @@ class TelaFaseConcluida(TelaBase):
         self.janela.blit(self.imagem, (0, 0))
         pygame.display.flip()
 
+# Tela genérica usada para transições com imagem (história, créditos, etc.)
 class TelaGenerica(TelaBase):
     def __init__(self, janela, imagem_path, proxima_tela):
         super().__init__(janela)
@@ -261,10 +270,9 @@ class TelaGenerica(TelaBase):
     def tratar_eventos(self, eventos):
         for evento in eventos:
             if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
-                print(f"[DEBUG] Tecla ENTER pressionada na tela: {self.proxima_tela_definida}")  # ✅ Adicionado
+                print(f"[DEBUG] Tecla ENTER pressionada na tela: {self.proxima_tela_definida}")
                 self.proxima_tela = self.proxima_tela_definida
 
     def desenhar(self):
         self.janela.blit(self.imagem, (0, 0))
         pygame.display.flip()
-    
