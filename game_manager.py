@@ -38,9 +38,7 @@ class GameManager:
                 return GAME_OVER
             self.estado = JOGANDO
 
-        if self.boss_derrotado and not self.novas_telas_executadas:
-            return self.iniciar_sequencia_telas()
-
+        # ✅ Remove a verificação redundante fora do loop
         estado_jogo = self.loop_jogo()
 
         if estado_jogo == GAME_OVER:
@@ -52,13 +50,14 @@ class GameManager:
         if self.level_atual == 1:
             return "fase_concluida1"
         elif self.level_atual == 2:
-            return "tela1_fase2"
+            return "tela1"  # ✅ Direciona para a primeira das telas finais
         else:
             return "menu"
 
     def carregar_level(self):
         try:
             mapa_path = f'Mapas/Mapa{self.level_atual}/mapa{self.level_atual}.tmx'
+            print(f"[DEBUG] Carregando mapa: {mapa_path}")
             self.tilemap = TileMap(mapa_path, zoom=3)
 
             self.grupo_inimigos = pygame.sprite.Group()
@@ -145,12 +144,16 @@ class GameManager:
                 return GAME_OVER
 
             self.atualizar_entidades(dt)
-            self.verificar_colisoes()
+            
+            # ✅ Verifica colisões DENTRO do loop principal
+            estado_colisao = self.verificar_colisoes()
+            if estado_colisao:
+                return estado_colisao  # Retorna imediatamente se houver transição
+
             self.atualizar_camera()
             self.desenhar()
 
         return self.estado
-
     def processar_eventos(self):
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -167,30 +170,38 @@ class GameManager:
         self.grupo_inimigos.update(pygame.time.get_ticks())
         self.grupo_projeteis.update(self.tilemap)
 
+    # game_manager.py - Método verificar_colisoes
     def verificar_colisoes(self):
         boss_vivo = False
+        # Verifica se há algum Boss vivo
         for inimigo in self.grupo_inimigos:
-            inimigo.verificar_colisao(self.tilemap)
-            if inimigo.esta_morto and not inimigo.xp_entregue:
-                if self.soldado:
-                    self.soldado.ganhar_xp(inimigo.xp_drop)
-                inimigo.xp_entregue = True
-            if isinstance(inimigo, (BossBase, Boss2)) and not inimigo.esta_morto:
-                boss_vivo = True
+            if isinstance(inimigo, (BossBase, Boss2)):
+                if not inimigo.esta_morto:
+                    boss_vivo = True
+                    print(f"[DEBUG] Boss vivo: {inimigo}")  # Novo debug
+                    break  # Interrompe se encontrar um Boss vivo
 
+        # Se não há Boss vivo e a sequência não foi iniciada
         if not boss_vivo and not self.novas_telas_executadas:
-            self.iniciar_transicao_fase()
+            print(f"[DEBUG] Todos os Bosses derrotados! Nível: {self.level_atual}")  # Novo debug
+            if self.level_atual == 1:
+                self.novas_telas_executadas = True
+                return "fase_concluida1"
+            elif self.level_atual == 2:
+                self.novas_telas_executadas = True
+                return "tela1"
 
-        if self.soldado and self.soldado.hp_atual <= 0:
-            self.estado = GAME_OVER
+        return None
 
     def iniciar_transicao_fase(self):
-        self.novas_telas_executadas = True
-        if self.level_atual < 2:
+        if self.level_atual == 1:
+            self.novas_telas_executadas = True
             self.level_atual += 1
             self.estado = CARREGANDO
-        else:
-            self.estado = GAME_OVER
+        elif self.level_atual == 2:
+            # ✅ Correção: apenas sinaliza que o boss foi derrotado
+            self.boss_derrotado = True
+            self.novas_telas_executadas = False  # Garante que a sequência será executada
 
     def atualizar_camera(self):
         if self.camera and self.soldado:

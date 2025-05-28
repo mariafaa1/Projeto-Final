@@ -120,6 +120,7 @@ class TelaHistoria(TelaBase):
 
     def desenhar(self):
         self.janela.blit(self.imagem, (0, 0))
+        pygame.display.flip()
 
 class TelaControles(TelaBase):
     def __init__(self, janela):
@@ -160,8 +161,8 @@ class TelaJogo(TelaBase):
             self.proxima_tela = "menu"
         elif estado == "fase_concluida1":
             self.proxima_tela = "fase_concluida1"
-        elif estado == "tela1_fase2":
-            self.proxima_tela = "tela1_fase2"
+        elif estado == "tela1":  # Alterado de "tela1_fase2" para "tela1"
+            self.proxima_tela = "tela1"
         elif estado == "game_over":
             self.proxima_tela = "menu_pos_jogo"
 
@@ -260,6 +261,7 @@ class TelaGenerica(TelaBase):
     def tratar_eventos(self, eventos):
         for evento in eventos:
             if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
+                print(f"[DEBUG] Tecla ENTER pressionada na tela: {self.proxima_tela_definida}")  # ✅ Adicionado
                 self.proxima_tela = self.proxima_tela_definida
 
     def desenhar(self):

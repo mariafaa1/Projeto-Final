@@ -82,7 +82,7 @@ def carregar_animacoes():
             os.path.join(base_path, 'ataque_leve'), 'ataque_leve', 5, ESCALA_SOLDADO)
         
         animacoes['soldado']['ataque_pesado'] = carregar_frames(
-            os.path.join(base_path, 'ataque_pesado'), 'ataque_pesado', 6, ESCALA_SOLDADO)
+            os.path.join(base_path, 'ataque_pesado'), 'ataque_pesado', 5, ESCALA_SOLDADO)
         
         animacoes['soldado']['ataque_arco'] = carregar_frames(
             os.path.join(base_path, 'ataque_arco'), 'ataque_arco', 8, ESCALA_SOLDADO)

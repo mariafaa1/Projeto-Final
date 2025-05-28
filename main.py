@@ -17,7 +17,7 @@ class GerenciadorTelas:
         pygame.display.set_caption("Pixel Fantasy")
 
         self.level_corrente = 1
-        self.estado_reinicio = REINICIO_NENHUM  # Controle de reinício
+        self.estado_reinicio = REINICIO_NENHUM
 
         self.telas = {
             "reiniciar_fase": None,
@@ -35,6 +35,12 @@ class GerenciadorTelas:
             "fase2_1": TelaGenerica(self.janela, "assets/fase2_1.png", "fase2_2"),
             "fase2_2": TelaGenerica(self.janela, "assets/fase2_2.png", "loading"),
 
+            "tela1": TelaGenerica(self.janela, "assets/tela1.1.png", "tela2"),
+            "tela2": TelaGenerica(self.janela, "assets/tela2.1.png", "tela3"),
+            "tela3": TelaGenerica(self.janela, "assets/tela3.1.png", "agradecimentos"),
+            "agradecimentos": TelaGenerica(self.janela, "assets/agradecimentos.png", "creditos"),
+            "creditos": TelaGenerica(self.janela, "assets/creditos.png", "menu"),
+
             "menu_pos_jogo": TelaMenuPosJogo(self.janela),
             "reiniciar_fase_confirmado": None,
             "loading": TelaCarregamento(self.janela),
@@ -46,7 +52,7 @@ class GerenciadorTelas:
 
     def executar(self):
         while True:
-            # Controle centralizado de reinício
+            # ✅ Controle de reinício de fase ou jogo
             if self.estado_reinicio == REINICIO_FASE:
                 self.telas["jogo"] = None
                 self.tela_atual = "loading"
@@ -57,6 +63,7 @@ class GerenciadorTelas:
                 self.tela_atual = "loading"
                 self.estado_reinicio = REINICIO_NENHUM
 
+            # ✅ Obtém a tela atual
             tela = self.telas.get(self.tela_atual)
             if not tela:
                 print(f"ERRO: Tela {self.tela_atual} não encontrada!")
@@ -77,6 +84,13 @@ class GerenciadorTelas:
                 pygame.display.update()
 
                 if tela.proxima_tela:
+                    # ✅ **ALTERAÇÃO ESSENCIAL E CORRETA:**
+                    # Atualiza level_corrente ao entrar em "fase2_2"
+                    if tela.proxima_tela == "fase2_2":
+                        self.level_corrente = 2
+                        print(f"[DEBUG] Level atualizado para {self.level_corrente}")
+
+                    # ✅ Se estiver saindo de loading, monta o TelaJogo correto
                     if self.tela_atual == "loading":
                         self.animacoes = tela.animacoes
                         self.telas["jogo"] = TelaJogo(
@@ -86,31 +100,30 @@ class GerenciadorTelas:
                             level_atual=self.level_corrente
                         )
 
-                    if self.tela_atual == "jogo":
-                        self.level_corrente = self.telas["jogo"].game_manager.level_atual
-
-                    # Tratamento das escolhas no menu_pos_jogo
+                    # ✅ Controle para o menu pós-jogo
                     if self.tela_atual == "menu_pos_jogo":
                         if tela.proxima_tela == "reiniciar_fase":
                             self.estado_reinicio = REINICIO_FASE
                         elif tela.proxima_tela == "reiniciar_jogo":
                             self.estado_reinicio = REINICIO_JOGO
 
+                    # ✅ Atualiza a tela atual
                     self.tela_atual = tela.proxima_tela
                     rodando = False
 
+                # ✅ Controle específico para voltar ao menu pós-jogo após TelaJogo
                 if isinstance(tela, TelaJogo) and tela.proxima_tela == "menu_pos_jogo":
                     self.tela_atual = "menu_pos_jogo"
                     rodando = False
 
-                if tela.proxima_tela:
-                    if tela.proxima_tela == "sair":
-                        pygame.quit()
-                        sys.exit()
-                    if tela.proxima_tela == "reiniciar_jogo":
-                        self.animacoes = None
-                    self.tela_atual = tela.proxima_tela
-                    rodando = False
+                # ✅ Encerrar o jogo
+                if tela.proxima_tela == "sair":
+                    pygame.quit()
+                    sys.exit()
+
+
+
+
 
 if __name__ == "__main__":
     try:

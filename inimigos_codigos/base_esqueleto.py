@@ -30,6 +30,8 @@ class InimigoBase(pygame.sprite.Sprite):
         self.ultimo_ataque = 0
         self.cooldown_ataque = 3000
         self.xp_entregue = False
+        self.velocidade_x = 0  
+        self.velocidade_y = 0
         self.raio_perseguicao = 300
         self.inimigos_group = inimigos_group
 
