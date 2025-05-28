@@ -202,6 +202,7 @@ class Soldado(pygame.sprite.Sprite):
         if self.virado_para_esquerda:
             frame = pygame.transform.flip(frame, True, False)
         self.image = frame
+        
 
     def processar_animacao_ataque(self, agora, teclas):
         if agora - self.ultimo_update > self.tempo_animacao:

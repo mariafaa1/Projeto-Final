@@ -1,3 +1,4 @@
+#game_manager.py
 import pygame
 from config import JOGANDO, GAME_OVER, CARREGANDO, FPS, FUNDO_BRANCO
 from sprites import Soldado
@@ -20,14 +21,22 @@ class GameManager:
         self.grupo_projeteis = None
         self.soldado = None
         self.camera = None
+        self.boss_derrotado = False
+        self.novas_telas_executadas = False
+
 
     def executar(self):
         if self.estado == CARREGANDO:
-            if not self.carregar_level():  # Agora retorna sucesso/falha
+            if not self.carregar_level():
                 return GAME_OVER
             self.estado = JOGANDO
-    
+        elif self.boss_derrotado and not self.novas_telas_executadas:
+            return self.iniciar_sequencia_telas()
+        
         return self.loop_jogo()
+
+    def iniciar_sequencia_telas(self):
+        return "fase_concluida1"
 
     def carregar_level(self):
         try:
@@ -118,12 +127,19 @@ class GameManager:
         self.grupo_projeteis.update(self.tilemap)
 
     def verificar_colisoes(self):
-        self.soldado.verificar_colisao(self.tilemap)
+        boss_vivo = False
         for inimigo in self.grupo_inimigos:
             inimigo.verificar_colisao(self.tilemap)
             if inimigo.esta_morto and not inimigo.xp_entregue:
                 self.soldado.ganhar_xp(inimigo.xp_drop)
                 inimigo.xp_entregue = True
+                if isinstance(inimigo, BossBase):
+                    self.boss_derrotado = True
+            if isinstance(inimigo, BossBase) and not inimigo.esta_morto:
+                boss_vivo = True
+        
+        if not boss_vivo and not self.novas_telas_executadas:
+            self.iniciar_transicao_fase()
 
     def atualizar_camera(self):
         self.camera.update(self.soldado)
@@ -140,3 +156,14 @@ class GameManager:
         
         self.soldado.draw_hud(self.janela)
         pygame.display.update()
+
+    def iniciar_transicao_fase(self):
+        self.novas_telas_executadas = True
+        self.estado = CARREGANDO  # Ou um novo estado específico para transição
+
+    def carregar_proxima_fase(self):
+        self.level_atual += 1
+        if self.level_atual > 2:  # Ajuste conforme o número de fases
+            self.estado = GAME_OVER
+            return
+        self.carregar_level()

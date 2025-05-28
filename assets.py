@@ -73,25 +73,25 @@ def carregar_animacoes():
         # ===== Soldado =====
         base_path = 'assets'
         animacoes['soldado']['parado'] = carregar_frames(
-            os.path.join(base_path, 'soldado_parado'), 'soldado_parado', 6, ESCALA_SOLDADO)
+            os.path.join(base_path, 'soldado_parado'), 'soldado_parado', 5, ESCALA_SOLDADO)
         
         animacoes['soldado']['andando'] = carregar_frames(
-            os.path.join(base_path, 'soldado_andando'), 'soldado_andando', 8, ESCALA_SOLDADO)
+            os.path.join(base_path, 'soldado_andando'), 'soldado_andando', 7, ESCALA_SOLDADO)
         
         animacoes['soldado']['ataque_leve'] = carregar_frames(
-            os.path.join(base_path, 'ataque_leve'), 'ataque_leve', 6, ESCALA_SOLDADO)
+            os.path.join(base_path, 'ataque_leve'), 'ataque_leve', 5, ESCALA_SOLDADO)
         
         animacoes['soldado']['ataque_pesado'] = carregar_frames(
             os.path.join(base_path, 'ataque_pesado'), 'ataque_pesado', 6, ESCALA_SOLDADO)
         
         animacoes['soldado']['ataque_arco'] = carregar_frames(
-            os.path.join(base_path, 'ataque_arco'), 'ataque_arco', 9, ESCALA_SOLDADO)
+            os.path.join(base_path, 'ataque_arco'), 'ataque_arco', 8, ESCALA_SOLDADO)
         
         animacoes['soldado']['dano'] = carregar_frames(
-            os.path.join(base_path, 'dano_soldado'), 'dano', 4, ESCALA_SOLDADO)
+            os.path.join(base_path, 'dano_soldado'), 'dano', 3, ESCALA_SOLDADO)
         
         animacoes['soldado']['morrer'] = carregar_frames(
-            os.path.join(base_path, 'morrer_soldado'), 'morrer', 4, ESCALA_SOLDADO)
+            os.path.join(base_path, 'morrer_soldado'), 'morrer', 3, ESCALA_SOLDADO)
 
         # ===== Orc Normal =====
         base_path = 'assets/inimigos/orc_normal'
@@ -159,5 +159,5 @@ def carregar_animacoes():
     except Exception as e:
         print(f"Erro crítico ao carregar assets: {e}")
         raise
-
+    
     return animacoes

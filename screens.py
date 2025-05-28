@@ -1,6 +1,17 @@
 import pygame
 from assets import carregar_animacoes
 from config import LARGURA, ALTURA, FUNDO_BRANCO, JOGANDO, GAME_OVER
+# Adicione no início do arquivo screens.py
+import sys
+
+
+def tratar_eventos(self, eventos):
+    for evento in eventos:
+        if evento.type == pygame.QUIT:
+            self.proxima_tela = "sair"
+        if evento.type == pygame.KEYDOWN:
+            if evento.key == pygame.K_ESCAPE:
+                self.proxima_tela = "menu"
 
 class TelaBase:
     def __init__(self, janela):
@@ -19,28 +30,21 @@ class TelaBase:
 class MenuInicial(TelaBase):
     def __init__(self, janela):
         super().__init__(janela)
-        self.fonte_titulo = pygame.font.Font(None, 72)
-        self.fonte_instrucao = pygame.font.Font(None, 36)
-        self.cor_texto = (255, 255, 255)
-        self.cor_fundo = (30, 30, 40)
+        try:
+            self.imagem = pygame.image.load("assets/tela0.png").convert()
+            self.imagem = pygame.transform.scale(self.imagem, (LARGURA, ALTURA))
+        except Exception as e:
+            print(f"Erro ao carregar tela inicial: {e}")
+            sys.exit()
 
     def tratar_eventos(self, eventos):
         for evento in eventos:
             if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
-                self.proxima_tela = "loading"
+                self.proxima_tela = "historia1"
 
     def desenhar(self):
-        self.janela.fill(self.cor_fundo)
-        titulo = self.fonte_titulo.render("Pixel Fantasy", True, self.cor_texto)
-        titulo_rect = titulo.get_rect(center=(LARGURA//2, ALTURA//2 - 50))
-        self.janela.blit(titulo, titulo_rect)
-        
-        instrucao = self.fonte_instrucao.render("Pressione ENTER para iniciar", True, self.cor_texto)
-        instrucao_rect = instrucao.get_rect(center=(LARGURA//2, ALTURA//2 + 50))
-        self.janela.blit(instrucao, instrucao_rect)
-
-    def atualizar(self):
-        pass  # Não necessário para menu estático
+        self.janela.blit(self.imagem, (0, 0))
+        pygame.display.flip()
 
 class TelaCarregamento(TelaBase):
     def __init__(self, janela):
@@ -95,6 +99,40 @@ class TelaCarregamento(TelaBase):
         texto_rect = texto.get_rect(center=(LARGURA//2, y - 40))
         self.janela.blit(texto, texto_rect)
 
+class TelaHistoria(TelaBase):
+    def __init__(self, janela, imagem_path, proxima_tela):
+        super().__init__(janela)
+        self.imagem = pygame.image.load(imagem_path).convert()
+        self.imagem = pygame.transform.scale(self.imagem, (LARGURA, ALTURA))
+        self.proxima_tela_definida = proxima_tela
+
+    def tratar_eventos(self, eventos):
+        for evento in eventos:
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
+                self.proxima_tela = self.proxima_tela_definida
+
+    def desenhar(self):
+        self.janela.blit(self.imagem, (0, 0))
+
+class TelaControles(TelaBase):
+    def __init__(self, janela):
+        super().__init__(janela)
+        try:
+            self.imagem = pygame.image.load("assets/comandos.png").convert()
+            self.imagem = pygame.transform.scale(self.imagem, (LARGURA, ALTURA))
+        except Exception as e:
+            print(f"Erro ao carregar tela de controles: {e}")
+            sys.exit()
+
+    def tratar_eventos(self, eventos):
+        for evento in eventos:
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
+                self.proxima_tela = "loading"
+
+    def desenhar(self):
+        self.janela.blit(self.imagem, (0, 0))
+        pygame.display.flip()
+
 class TelaJogo(TelaBase):
     def __init__(self, janela, animacoes, game_manager_class):
         super().__init__(janela)
@@ -112,3 +150,23 @@ class TelaJogo(TelaBase):
 
     def desenhar(self):
         pass  # O desenho é feito pelo GameManager
+
+class TelaFaseConcluida(TelaBase):
+    def __init__(self, janela, imagem_path, proxima_tela):
+        super().__init__(janela)
+        try:
+            self.imagem = pygame.image.load(imagem_path).convert()
+            self.imagem = pygame.transform.scale(self.imagem, (LARGURA, ALTURA))
+            self.proxima_tela_definida = proxima_tela
+        except Exception as e:
+            print(f"Erro ao carregar tela de fase concluída: {e}")
+            sys.exit()
+
+    def tratar_eventos(self, eventos):
+        for evento in eventos:
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
+                self.proxima_tela = self.proxima_tela_definida
+
+    def desenhar(self):
+        self.janela.blit(self.imagem, (0, 0))
+        pygame.display.flip()

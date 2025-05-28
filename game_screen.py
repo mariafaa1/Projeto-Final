@@ -11,6 +11,36 @@ from camera import Camera
 from tilemap import TileMap
 import pygame as pg
 
+
+def processar_eventos(self):
+    for evento in pygame.event.get():
+        if evento.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if evento.type == pygame.KEYDOWN:
+            if evento.key == pygame.K_ESCAPE:
+                self.estado = PAUSADO  # Implemente a lógica de pausa se necessário
+    return True
+
+def loop_jogo(self):
+    try:
+        while self.estado == JOGANDO:
+            self.clock.tick(FPS)
+            
+            if not self.processar_eventos():
+                return GAME_OVER
+            
+            self.atualizar_entidades()
+            self.verificar_colisoes()
+            self.atualizar_camera()
+            self.desenhar()
+    
+    except KeyboardInterrupt:
+        print("Jogo interrompido pelo usuário")
+        return GAME_OVER
+    
+    return self.estado
+
 def processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis):
     for obj in tilemap.tmxdata.objects:
         if obj.name == 'spawn_soldado':

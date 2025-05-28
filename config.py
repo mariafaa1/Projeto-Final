@@ -1,3 +1,4 @@
+#config.py
 LARGURA = 1400
 ALTURA = 600
 FPS = 60
