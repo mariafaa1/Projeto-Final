@@ -4,7 +4,7 @@ import sys
 from config import LARGURA, ALTURA
 from screens import MenuInicial, TelaCarregamento, TelaJogo, TelaGenerica, TelaControles, TelaHistoria, TelaMenuPosJogo
 from game_manager import GameManager
-
+from music import iniciar_musica_de_fundo
 # Estados de reinício
 REINICIO_NENHUM = 0
 REINICIO_FASE = 1
@@ -13,6 +13,7 @@ REINICIO_JOGO = 2
 class GerenciadorTelas:
     def __init__(self):
         pygame.init()
+        iniciar_musica_de_fundo()
         self.janela = pygame.display.set_mode((LARGURA, ALTURA))
         pygame.display.set_caption("Pixel Fantasy")
 

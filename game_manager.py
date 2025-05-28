@@ -1,3 +1,4 @@
+#game_manager.py
 import pygame
 from config import JOGANDO, GAME_OVER, CARREGANDO, FPS, FUNDO_BRANCO
 from sprites import Soldado
@@ -29,19 +30,21 @@ class GameManager:
         self.level_ao_morrer = self.level_atual
 
     def executar(self):
+        # ✅ Verifica se o soldado está morto ANTES de processar o estado atual
         if self.soldado and self.soldado.esta_morto:
-            self.level_ao_morrer = self.level_atual
-            return "menu_pos_jogo"
+            # Garante que a animação de morte foi concluída
+            if self.soldado.animacao_morte_concluida:
+                self.level_ao_morrer = self.level_atual
+                return "menu_pos_jogo"  # Força a transição
 
         if self.estado == CARREGANDO:
             if not self.carregar_level():
                 return GAME_OVER
             self.estado = JOGANDO
 
-        # ✅ Remove a verificação redundante fora do loop
         estado_jogo = self.loop_jogo()
 
-        if estado_jogo == GAME_OVER:
+        if estado_jogo == GAME_OVER or (self.soldado and self.soldado.esta_morto):
             return "menu_pos_jogo"
 
         return estado_jogo
@@ -145,10 +148,13 @@ class GameManager:
 
             self.atualizar_entidades(dt)
             
-            # ✅ Verifica colisões DENTRO do loop principal
+            # ✅ Verifica se o soldado morreu DURANTE o loop
+            if self.soldado and self.soldado.esta_morto:
+                return "menu_pos_jogo"  # Sai imediatamente do loop
+
             estado_colisao = self.verificar_colisoes()
             if estado_colisao:
-                return estado_colisao  # Retorna imediatamente se houver transição
+                return estado_colisao
 
             self.atualizar_camera()
             self.desenhar()
@@ -169,6 +175,12 @@ class GameManager:
 
         self.grupo_inimigos.update(pygame.time.get_ticks())
         self.grupo_projeteis.update(self.tilemap)
+
+        # ✅ Verificar inimigos mortos e conceder XP
+        for inimigo in self.grupo_inimigos:
+            if inimigo.esta_morto and not inimigo.xp_entregue:
+                self.soldado.ganhar_xp(inimigo.xp_drop)
+                inimigo.xp_entregue = True
 
     # game_manager.py - Método verificar_colisoes
     def verificar_colisoes(self):

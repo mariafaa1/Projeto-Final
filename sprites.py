@@ -97,11 +97,13 @@ class Soldado(pygame.sprite.Sprite):
                 if self.indice_animacao < len(self.animacoes['morrer']) - 1:
                     self.indice_animacao += 1
                 else:
+                    # ✅ Sinaliza que a morte está pronta para transição
                     if not self.animacao_morte_concluida:
                         self.animacao_morte_concluida = True
                         self.tempo_morte_concluida = agora
-        
-        frame = self.animacoes['morrer'][min(self.indice_animacao, len(self.animacoes['morrer']) - 1)]
+
+        # Mantém a última frame da animação
+        frame = self.animacoes['morrer'][min(self.indice_animacao), len(self.animacoes['morrer']) - 1]
         if self.virado_para_esquerda:
             frame = pygame.transform.flip(frame, True, False)
         self.image = frame
