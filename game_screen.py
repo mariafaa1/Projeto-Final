@@ -74,7 +74,7 @@ def processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis):
 
     print("[INFO] Spawns processados com sucesso!")
 
-def tela_jogo(janela, animacoes_soldado):
+def tela_jogo(janela, animacoes_soldado, tilemap):
     clock = pygame.time.Clock()
     estado = JOGANDO
 
@@ -84,7 +84,7 @@ def tela_jogo(janela, animacoes_soldado):
     grupo_inimigos = pygame.sprite.Group()
     grupo_projeteis = pygame.sprite.Group()
 
-    soldado = Soldado(animacoes_soldado, grupo_inimigos, grupo_projeteis)
+    soldado = Soldado(animacoes_soldado, grupo_inimigos, grupo_projeteis, tilemap)
 
     mapa_largura, mapa_altura = tilemap.map_size
     camera = Camera(largura_janela, altura_janela)
@@ -105,8 +105,8 @@ def tela_jogo(janela, animacoes_soldado):
         soldado.update(teclas)
         grupo_inimigos.update(pygame.time.get_ticks())
         grupo_projeteis.update(tilemap)
+        soldado.verificar_colisao()
 
-        soldado.verificar_colisao(tilemap)
         for inimigo in grupo_inimigos:
             inimigo.verificar_colisao(tilemap)
 

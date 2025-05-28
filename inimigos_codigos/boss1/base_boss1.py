@@ -53,7 +53,7 @@ class BossBase(InimigoBase):
 
         def carregar_frames(pasta, prefixo, inicio, fim):
             frames = []
-            M = 4
+            M = 7
             for i in range(inicio, fim + 1):
                 nome_arquivo = f"{prefixo} {i:02d}.png"
                 caminho = os.path.join('assets', 'inimigos', 'boss1', pasta, nome_arquivo)

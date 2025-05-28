@@ -11,8 +11,9 @@ from config import (
 from tilemap import TileMap
 
 class Soldado(pygame.sprite.Sprite):
-    def __init__(self, animacoes, grupo_inimigos, grupo_projeteis):
+    def __init__(self, animacoes, grupo_inimigos, grupo_projeteis, tilemap):
         super().__init__()
+        self.tilemap = tilemap
         self.animacoes = animacoes
         self.estado = 'parado'
         self.indice_animacao = 0
@@ -26,7 +27,8 @@ class Soldado(pygame.sprite.Sprite):
         self.tempo_animacao = 100       
         self.tempo_animacao_morte = 150
         self.vel_x = 0 
-        self.vel_y = 0  
+        self.vel_y = 0
+          
         
         # ======================================================
         # PARÂMETROS AJUSTÁVEIS - ATAQUES
@@ -78,12 +80,17 @@ class Soldado(pygame.sprite.Sprite):
 
     def update(self, teclas):
         agora = pygame.time.get_ticks()
-        
+    
         if self.esta_morto:
             self.processar_morte(agora)
             return
 
+    # Processa movimentos SEM aplicar diretamente às coordenadas
         self.processar_movimento_ataque(teclas, agora)
+        self.verificar_colisao()
+
+    
+    # Restante da lógica...
         self.processar_dano(agora)
         self.processar_animacoes(agora, teclas)
 
@@ -134,10 +141,6 @@ class Soldado(pygame.sprite.Sprite):
             self.vel_y = VELOCIDADE_JOGADOR
             novo_estado = 'andando'
             movimento = True
-
-        # Aplicar movimento (a colisão será verificada em verificar_colisao)
-        self.rect.x += self.vel_x
-        self.rect.y += self.vel_y
 
         if not self.executando_ataque:
             self.estado = novo_estado
@@ -365,29 +368,38 @@ class Soldado(pygame.sprite.Sprite):
         self.dano_arco *= 3
     
     
-    def verificar_colisao(self, tilemap):
+    def verificar_colisao(self):
+    # Salva a posição original para testes
         original_x = self.hitbox_rect.x
         original_y = self.hitbox_rect.y
     
         self.hitbox_rect.x += self.vel_x
-        for rect in tilemap.collision_rects:
+        colidiu = False
+        for rect in self.tilemap.collision_rects:
             if self.hitbox_rect.colliderect(rect):
-                if self.vel_x > 0:  # Direita
+                if self.vel_x > 0:  # Movendo para direita
                     self.hitbox_rect.right = rect.left
-                elif self.vel_x < 0:  # Esquerda
+                elif self.vel_x < 0:  # Movendo para esquerda
                     self.hitbox_rect.left = rect.right
-                break
+                colidiu = True
+                break  # Sai após primeira colisão relevante
     
+
         self.hitbox_rect.y += self.vel_y
-        for rect in tilemap.collision_rects:
+        for rect in self.tilemap.collision_rects:
             if self.hitbox_rect.colliderect(rect):
-                if self.vel_y > 0:  # Baixo
+                if self.vel_y > 0:  # Movendo para baixo
                     self.hitbox_rect.bottom = rect.top
-                elif self.vel_y < 0:  # Cima
+                elif self.vel_y < 0:  # Movendo para cima
                     self.hitbox_rect.top = rect.bottom
-                break
+                colidiu = True
+                break  # Sai após primeira colisão relevante
     
+
         self.rect.center = self.hitbox_rect.center
+        if colidiu:
+            self.vel_x = 0
+            self.vel_y = 0
     
 class Projetil(pygame.sprite.Sprite):
     def __init__(self, position, direcao_x, direcao_y, grupo_inimigos, dano):
@@ -427,7 +439,7 @@ class Projetil(pygame.sprite.Sprite):
         self.rect.x += self.velocidade * self.direcao_x
         self.rect.y += self.velocidade * self.direcao_y
         
-        # Colisão com inimigos
+        # Colisão com inimigos (código simplificado)
         for inimigo in pygame.sprite.spritecollide(self, self.grupo_inimigos, False, pygame.sprite.collide_mask):
             inimigo.receber_dano(self.dano)
             self.kill()

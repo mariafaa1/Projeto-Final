@@ -40,28 +40,38 @@ class GameManager:
 
     def carregar_level(self):
         try:
-            self.tilemap = TileMap(f'Mapas/Mapa{self.level_atual}/mapa{self.level_atual}.tmx', zoom=3)
+        # Carrega o mapa dinamicamente
+            mapa_path = f'Mapas/Mapa{self.level_atual}/mapa{self.level_atual}.tmx'
+            self.tilemap = TileMap(mapa_path, zoom=3)
+        
+        # Inicializa grupos e jogador
             self.grupo_inimigos = pygame.sprite.Group()
             self.grupo_projeteis = pygame.sprite.Group()
         
             self.soldado = Soldado(
                 self.animacoes['soldado'],
                 self.grupo_inimigos,
-                self.grupo_projeteis
+                self.grupo_projeteis,
+                self.tilemap
             )
 
+        # Configuração da câmera
             largura_janela, altura_janela = self.janela.get_size()
             self.camera = Camera(largura_janela, altura_janela)
             self.camera.configurar_limites(*self.tilemap.map_size)
         
+        # Processa os spawn points
             self.processar_spawns()
-            return True  # ← Sucesso
+            return True
 
         except FileNotFoundError:
-            print("ERRO: Arquivo do mapa não encontrado!")
+            print(f"ERRO: Mapa {self.level_atual} não encontrado!")
+            return False
+        except KeyError as e:
+            print(f"ERRO: Animação não encontrada - {str(e)}")
             return False
         except Exception as e:
-            print(f"ERRO: {str(e)}")
+            print(f"ERRO CRÍTICO: {str(e)}")
             return False
 
 
@@ -121,8 +131,15 @@ class GameManager:
         return True  # ← Padrão para continuar execução
 
     def atualizar_entidades(self):
+
         teclas = pygame.key.get_pressed()
         self.soldado.update(teclas)
+        self.soldado.verificar_colisao()
+    
+    # Segundo: verificar colisões
+        self.soldado.verificar_colisao()  # Adicionar esta linha
+    
+    # Terceiro: atualizar outras entidades
         self.grupo_inimigos.update(pygame.time.get_ticks())
         self.grupo_projeteis.update(self.tilemap)
 
@@ -159,7 +176,11 @@ class GameManager:
 
     def iniciar_transicao_fase(self):
         self.novas_telas_executadas = True
-        self.estado = CARREGANDO  # Ou um novo estado específico para transição
+        self.level_atual += 1  # Avança para próxima fase
+        if self.level_atual > 2:
+            self.estado = GAME_OVER
+        else:
+            self.estado = CARREGANDO
 
     def carregar_proxima_fase(self):
         self.level_atual += 1

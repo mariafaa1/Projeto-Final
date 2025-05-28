@@ -2,10 +2,7 @@
 import pygame
 import sys
 from config import LARGURA, ALTURA
-from screens import (
-    MenuInicial, TelaCarregamento, TelaJogo, 
-    TelaHistoria, TelaControles, TelaFaseConcluida
-)
+from screens import MenuInicial, TelaCarregamento, TelaJogo, TelaGenerica, TelaControles, TelaHistoria
 from game_manager import GameManager
 
 class GerenciadorTelas:
@@ -13,22 +10,29 @@ class GerenciadorTelas:
         pygame.init()
         self.janela = pygame.display.set_mode((LARGURA, ALTURA))
         pygame.display.set_caption("Pixel Fantasy")
+        
         self.telas = {
+            # Telas principais
             "menu": MenuInicial(self.janela),
             "historia1": TelaHistoria(self.janela, "assets/tela1.png", "historia2"),
             "historia2": TelaHistoria(self.janela, "assets/tela2.png", "historia3"),
             "historia3": TelaHistoria(self.janela, "assets/tela3.png", "controles"),
             "controles": TelaControles(self.janela),
+            
+            # Sequência pós-boss (CORRIGIDO)
+            "fase_concluida1": TelaGenerica(self.janela, "assets/fase1_concluida.png", "dialogo1"),
+            "dialogo1": TelaGenerica(self.janela, "assets/dialogo1.png", "dialogo2"),
+            "dialogo2": TelaGenerica(self.janela, "assets/dialogo2.png", "dialogo3"),
+            "dialogo3": TelaGenerica(self.janela, "assets/dialogo3.png", "fase2_1"),
+            "fase2_1": TelaGenerica(self.janela, "assets/fase2_1.png", "fase2_2"),
+            "fase2_2": TelaGenerica(self.janela, "assets/fase2_2.png", "loading"),
+            
+            # Telas de sistema
             "loading": None,
             "jogo": None
         }
-        self.telas.update({
-            "fase_concluida1": TelaFaseConcluida(self.janela, "assets/fase1_concluida.png", "fase_concluida2"),
-            "fase_concluida2": TelaFaseConcluida(self.janela, "assets/fase2_concluida.png", "loading")
-        })
         self.tela_atual = "menu"
         self.animacoes = None
-
 
     def executar(self):
         while True:

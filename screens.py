@@ -1,7 +1,7 @@
+#screens.py
 import pygame
 from assets import carregar_animacoes
 from config import LARGURA, ALTURA, FUNDO_BRANCO, JOGANDO, GAME_OVER
-# Adicione no início do arquivo screens.py
 import sys
 
 
@@ -160,6 +160,26 @@ class TelaFaseConcluida(TelaBase):
             self.proxima_tela_definida = proxima_tela
         except Exception as e:
             print(f"Erro ao carregar tela de fase concluída: {e}")
+            sys.exit()
+
+    def tratar_eventos(self, eventos):
+        for evento in eventos:
+            if evento.type == pygame.KEYDOWN and evento.key == pygame.K_RETURN:
+                self.proxima_tela = self.proxima_tela_definida
+
+    def desenhar(self):
+        self.janela.blit(self.imagem, (0, 0))
+        pygame.display.flip()
+
+class TelaGenerica(TelaBase):
+    def __init__(self, janela, imagem_path, proxima_tela):
+        super().__init__(janela)
+        try:
+            self.imagem = pygame.image.load(imagem_path).convert()
+            self.imagem = pygame.transform.scale(self.imagem, (LARGURA, ALTURA))
+            self.proxima_tela_definida = proxima_tela
+        except Exception as e:
+            print(f"Erro ao carregar tela: {e}")
             sys.exit()
 
     def tratar_eventos(self, eventos):
