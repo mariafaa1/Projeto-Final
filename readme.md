@@ -1,16 +1,18 @@
 # **Pixel Lord: Chronicles of Eldoria**
 
-![Imagem do Jogo](assets/tela0.png)
+![Imagem do Jogo](assets/creditos.png)
 
 ---
 
 ## 🧙 Sobre o Jogo
 
-**Pixel Lord: Chronicles of Eldoria** é um jogo de ação e fantasia em estilo pixel art, desenvolvido como projeto de conclusão de curso. O jogador assume o papel de um guerreiro lendário que deve atravessar calabouços, enfrentar monstros e derrotar dois chefes finais em duas fases distintas.  
+**Pixel Lord: O Senhor Dos Pixels!** é um jogo de ação e fantasia em estilo pixel art, desenvolvido como projeto de conclusão de curso. O jogador assume o papel de um **guerreiro lendário** em uma jornada épica por calabouços traiçoeiros, enfrentando monstros perigosos e dois chefes finais, em fases distintas e desafiadoras.
 
-A história se passa em **Eldoria**, um reino devastado por forças sombrias. Você é o último defensor da luz, escolhido para restaurar a paz e destruir os generais do caos: **Boss 1** e **Boss 2**.  
+A história se passa na lendária **Terra-média**, pouco tempo após a Batalha de Gondor. Embora a vitória tenha sido celebrada, os **remanescentes do caos escaparam em direção às Montanhas Nebulosas**, onde forças sombrias começaram a se reagrupar. Entre eles estão dois generais perigosos que ameaçam restaurar a escuridão: **Argul, o Senhor das Sombras, e Kronark, o Titã do Abismo.**
 
-A jornada é cheia de desafios, armadilhas e inimigos com comportamentos distintos e ataques variados. O jogo exige raciocínio rápido, reflexos e domínio dos comandos de ataque e movimentação.
+Você é o **último** defensor da luz, convocado para uma missão crucial: invadir os domínios corrompidos nas profundezas das montanhas, derrotar hordas de inimigos e eliminar **Argul** e **Kronark** de uma vez por todas.
+
+A jornada é repleta de obstáculos, armadilhas e inimigos com comportamentos únicos e ataques variados. O jogo exige raciocínio rápido, precisão nos movimentos e domínio total dos comandos de ataque e defesa.
 
 ---
 
@@ -18,8 +20,8 @@ A jornada é cheia de desafios, armadilhas e inimigos com comportamentos distint
 
 Para assistir ao tutorial completo de como jogar, acesse:
 
-🔗 [Tutorial do Pixel Lord - YouTube](https://www.youtube.com/watch?v=SEU_LINK_AQUI)
-
+🔗 [3 minutos - Tutorial do Pixel Lord - Google Drive](https://drive.google.com/drive/folders/1CkHrf5QHh1DqOyTTFYBoI2Bk0SoMiTbO?usp=drive_link)
+🔗 [7 minutos - Tutorial do Pixel Lord - Google Drive](https://drive.google.com/drive/folders/1CkHrf5QHh1DqOyTTFYBoI2Bk0SoMiTbO?usp=drive_link)
 ---
 
 ## 🎮 Controles
@@ -41,11 +43,8 @@ Para assistir ao tutorial completo de como jogar, acesse:
 
 Para instalar e rodar o jogo localmente:
 
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/seu-usuario/pixel-lord.git
-   cd pixel-lord
-   ```
+1. Clone o repositório 
+   
 
 2. Instale as dependências:
    ```bash
@@ -63,7 +62,7 @@ Para instalar e rodar o jogo localmente:
 
 - O jogo é dividido em **duas fases**, com mapas distintos e diferentes tipos de inimigos.  
 - Enfrente inimigos comuns como **Orcs, Esqueletos e Arqueiros**, cada um com seu comportamento.  
-- Derrote o **Boss 1** para avançar à segunda fase, e o **Boss 2** para concluir o jogo.  
+- Derrote o **Zar`Ghul** para avançar à segunda fase, e o **Kronark** para concluir o jogo.  
 - Use seus ataques estrategicamente, pois cada um possui cooldown e dano diferente.  
 - Ao derrotar inimigos, você ganha experiência (XP) e evolui o personagem.
 
