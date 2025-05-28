@@ -13,9 +13,9 @@ class BossPhase1(BossBase):
         self.dano_ataque_especial = 25
         self.distancia_ataque = 50
         self.frame_dano = {
-            'ataque_fraco': 3,
-            'ataque_pesado': 5,
-            'ataque_especial': 6
+            'ataque_fraco': 5,
+            'ataque_pesado': 9,
+            'ataque_especial': 7
         }
 
     def aplicar_dano_area(self, raio):

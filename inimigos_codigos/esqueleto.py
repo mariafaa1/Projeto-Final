@@ -8,7 +8,7 @@ class Esqueleto(InimigoBase):
         super().__init__(
             x=x,
             y=y,
-            hp_max=70,
+            hp_max=60,
             velocidade=1.8,
             alvo=alvo,
             inimigos_group=inimigos_group 

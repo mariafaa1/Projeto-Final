@@ -1,4 +1,3 @@
-# orc_armadura.py
 import pygame
 import random
 from inimigos_codigos.Inimigos_mapa2.base_orc_armadura import InimigoBase
@@ -7,7 +6,6 @@ class OrcArmadura(InimigoBase):
     def __init__(self, x, y, alvo, grupo_inimigos):
         super().__init__(x, y, hp_max=400, velocidade=1, alvo=alvo)
         
-        # Configurações de ataque atualizadas
         self.ataques = {
             'ataque1': {'dano': 10, 'frame_dano': 3, 'cooldown': 2000},
             'ataque2': {'dano': 15, 'frame_dano': 6, 'cooldown': 2000},
@@ -23,6 +21,7 @@ class OrcArmadura(InimigoBase):
         self.tilemap = alvo.tilemap
         self.raio_perseguicao = 200
 
+    # CORREÇÃO: Priorizar ataque mesmo durante evitação
     def update(self, dt):
         super().update(dt)
         agora = pygame.time.get_ticks()
@@ -32,12 +31,10 @@ class OrcArmadura(InimigoBase):
             self.velocidade_y = 0
             return
     
-    # Verificar se pode atacar (usando o cooldown do ataque selecionado)
         if not self.esta_atacando and not self.esta_morto:
             if self.verificar_distancia_ataque():
-            # Usar o cooldown do último ataque realizado
-                cooldown_atual = self.ataques[self.tipo_ataque]['cooldown'] if hasattr(self, 'tipo_ataque') else 2000
-                if agora - self.ultimo_ataque >= cooldown_atual:
+                cooldown = self.ataques[self.tipo_ataque]['cooldown'] if hasattr(self, 'tipo_ataque') else 2000
+                if agora - self.ultimo_ataque >= cooldown:
                     self.iniciar_ataque_aleatorio(agora)
 
     def iniciar_ataque_aleatorio(self, tempo_atual):
@@ -52,21 +49,17 @@ class OrcArmadura(InimigoBase):
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
         
-        # Animação de morte
             if self.estado == 'morrendo':
                 if self.indice_animacao < len(self.animacoes['morrendo']) - 1:
                     self.indice_animacao += 1
                 else:
                     self.animacao_morte_concluida = True
         
-        # Animação de ataque (VERIFICAÇÃO DE ESTADO CORRIGIDA)
             elif self.estado in ['ataque1', 'ataque2', 'ataque3']:
                 if self.estado in self.animacoes:
-        # Aplicar dano no frame correto
                     if self.indice_animacao == self.ataques[self.tipo_ataque]['frame_dano']:
                         self.aplicar_dano()
         
-        # Avançar apenas se não for o último frame
                     if self.indice_animacao < len(self.animacoes[self.estado]) - 1:
                         self.indice_animacao += 1
                     else:
@@ -74,12 +67,10 @@ class OrcArmadura(InimigoBase):
                         self.estado = 'parado'
                         self.indice_animacao = 0
         
-        # Outras animações (GARANTIR QUE O ESTADO EXISTA)
             else:
                 if self.estado in self.animacoes:
                     self.indice_animacao = (self.indice_animacao + 1) % len(self.animacoes[self.estado])
         
-        # Atualização segura da imagem
             if self.estado in self.animacoes:
                 self.image = self.animacoes[self.estado][self.indice_animacao]
                 if not self.direita:
@@ -92,7 +83,6 @@ class OrcArmadura(InimigoBase):
             dano = self.ataques[self.tipo_ataque]['dano']
             self.alvo.receber_dano(dano)
 
-    # Mantemos as funções herdadas
     def draw_hp_bar(self, tela, camera):
         super().draw_hp_bar(tela, camera)
 

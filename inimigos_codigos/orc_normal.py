@@ -7,14 +7,14 @@ class OrcNormal(InimigoBase):
         super().__init__(
             x=x,
             y=y,
-            hp_max=100,
+            hp_max=70,
             velocidade=1,
             alvo=alvo,
             inimigos_group=inimigos_group
             
         )
         self.dano_ataque = 15
-        self.xp_drop = 100
+        self.xp_drop = 50
 
     def update(self, dt):
         super().update(dt)

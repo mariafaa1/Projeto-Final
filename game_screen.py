@@ -61,7 +61,7 @@ def processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis):
             grupo_inimigos.add(esqueleto)
 
         elif obj.name == 'spawn_esqueleto_arqueiro':
-            arqueiro = EsqueletoArqueiro(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_projeteis)
+            arqueiro = EsqueletoArqueiro(obj.x * tilemap.zoom, obj.y * tilemap.zoom, soldado, grupo_projeteis, grupo_inimigos)
             grupo_inimigos.add(arqueiro)
 
         elif obj.name == 'spawn_orc_armadura':

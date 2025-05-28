@@ -16,27 +16,37 @@ class FlechaEsqueleto(pygame.sprite.Sprite):
         self.alvo = alvo
         self.mask = pygame.mask.from_surface(self.image)
 
-    def update(self):
+    def update(self, *args):
         self.rect.x += math.cos(self.angulo) * self.velocidade
         self.rect.y += math.sin(self.angulo) * self.velocidade
-        
+
+        # Colisão com o jogador
         if pygame.sprite.collide_mask(self, self.alvo):
             self.alvo.receber_dano(self.dano)
             self.kill()
-        
-        if not pygame.display.get_surface().get_rect().colliderect(self.rect):
+            return
+
+        # Colisão com o tilemap
+        for rect in self.alvo.tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                self.kill()
+                return
+
+        # Fora dos limites do mapa
+        if not pygame.Rect(0, 0, *self.alvo.tilemap.map_size).colliderect(self.rect):
             self.kill()
 
 class EsqueletoArqueiro(BaseEsqueletoArqueiro):
-    def __init__(self, x, y, alvo, grupo_projeteis):
-        super().__init__(x, y, hp_max=150, velocidade=1.8, alvo=alvo)
+    def __init__(self, x, y, alvo, grupo_projeteis, grupo_inimigos):
+        super().__init__(x, y, hp_max=60, velocidade=1.8, alvo=alvo, grupo_inimigos=grupo_inimigos)
+        self.grupo_projeteis = grupo_projeteis
         self.grupo_projeteis = grupo_projeteis
         self.cooldown_ataque = 3000
         self.ultimo_ataque = 0
-        self.dano_ataque = 25
+        self.dano_ataque = 15
         self.xp_drop = 120
         self.raio_visao = 500
-        self.raio_ataque_ideal = 350
+        self.raio_ataque_ideal = 150
         self.margem_erro = 0.1
         self.ultimo_alvo_pos = (0, 0)
         self.esta_atacando = False
@@ -54,14 +64,16 @@ class EsqueletoArqueiro(BaseEsqueletoArqueiro):
 
     def verificar_disparo(self, agora):
         if agora - self.ultimo_ataque >= self.cooldown_ataque:
-            distancia = math.dist(self.rect.center, self.ultimo_alvo_pos)
-            
-            if distancia <= self.raio_visao:
+            dx = self.alvo.rect.centerx - self.rect.centerx
+            dy = self.alvo.rect.centery - self.rect.centery
+            distancia = math.hypot(dx, dy)
+        
+        # Usar raio_visao e raio_ataque_ideal como no Orc
+            if self.raio_visao >= distancia >= self.raio_ataque_ideal:
                 self.esta_atacando = True
                 self.estado = 'ataque'
                 self.indice_animacao = 0
                 self.ultimo_ataque = agora
-                self.posicionar_para_ataque()
 
     def posicionar_para_ataque(self):
         dx = self.alvo.rect.centerx - self.rect.centerx
@@ -143,3 +155,5 @@ class EsqueletoArqueiro(BaseEsqueletoArqueiro):
             alvo=self.alvo
         )
         self.grupo_projeteis.add(flecha)
+    
+    

@@ -8,8 +8,11 @@ from config import (
 )
 
 class BaseEsqueletoArqueiro(pygame.sprite.Sprite):
-    def __init__(self, x, y, hp_max, velocidade, alvo):
+    def __init__(self, x, y, hp_max, velocidade, alvo, grupo_inimigos):
         super().__init__()
+        self.raio_perseguicao = 500 
+        self.raio_ataque = 350
+        self.grupo_inimigos = grupo_inimigos
         self.animacoes = self.carregar_animacoes()
         self.estado = 'parado'
         self.indice_animacao = 0
@@ -28,6 +31,8 @@ class BaseEsqueletoArqueiro(pygame.sprite.Sprite):
         self.animacao_morte_concluida = False
         self.direita = True
         self.xp_entregue = False
+        self.velocidade_x = 0  # Novo atributo
+        self.velocidade_y = 0
 
     def carregar_animacoes(self):
         animacoes = {
@@ -65,72 +70,111 @@ class BaseEsqueletoArqueiro(pygame.sprite.Sprite):
 
     def update(self, dt):
         if not self.esta_morto:
-            self.controlar_estados()
+        # Resetar estado de dano após 0.5s
+            if self.estado == 'dano' and pygame.time.get_ticks() - self.tempo_dano > 500:
+                self.estado = 'parado'
+                self.indice_animacao = 0  # Resetar animação
+        
+        # Atualizar lógica de estados apenas se não estiver em dano
+            if self.estado != 'dano':
+                self.controlar_estados()
+        
+        # Aplicar movimento
+            self.rect.x += self.velocidade_x
+            self.rect.y += self.velocidade_y
+        
+        # Atualizar animação
             self.atualizar_animacao(dt)
+        
         elif self.estado == 'morrendo' and not self.animacao_morte_concluida:
             self.atualizar_animacao(dt)
-            
-        if self.estado == 'dano' and pygame.time.get_ticks() - self.tempo_dano > 500:
-            self.estado = 'parado'
+    
+    # Resetar velocidades após movimento
+        self.velocidade_x = 0
+        self.velocidade_y = 0
+
 
     def controlar_estados(self):
         if self.esta_morto or self.esta_atacando:
             return
-            
+        
         dx = self.alvo.rect.centerx - self.rect.centerx
-        self.direita = dx > 0  # Atualiza direção primeiro
-
-        # Só persegue se o alvo estiver na frente
-        if (self.direita and dx > 50) or (not self.direita and dx < -50):
-            if self.verificar_distancia_ataque():
-                self.esta_atacando = True
-                self.estado = 'ataque'
-            else:
-                self.mover_em_direcao_alvo()
+        dy = self.alvo.rect.centery - self.rect.centery
+        distancia = math.hypot(dx, dy)
+    
+    # Atualizado: Verificar continuamente o raio de perseguição
+        if distancia > self.raio_perseguicao:
+            self.estado = 'parado'
+            self.velocidade_x = 0
+            self.velocidade_y = 0
+            return
+        
+        self.direita = dx > 0
+    
+    # Lógica de perseguição/ataque
+        if self.raio_ataque <= distancia <= self.raio_perseguicao:
+            self.estado = 'andando'
+            self.mover_em_direcao_alvo()
+        elif distancia < self.raio_ataque:
+            self.esta_atacando = True
+            self.estado = 'ataque'
         else:
             self.estado = 'parado'
+            self.velocidade_x = 0
+            self.velocidade_y = 0
 
     def mover_em_direcao_alvo(self):
         dx = self.alvo.rect.centerx - self.rect.centerx
         dy = self.alvo.rect.centery - self.rect.centery
         distancia = math.hypot(dx, dy)
-        
+    
         if distancia == 0:
             return
+        
+        self.velocidade_x = (dx / distancia) * min(self.velocidade, distancia)
+        self.velocidade_y = (dy / distancia) * min(self.velocidade, distancia)
 
-        # Movimento em arco para melhor posicionamento
-        if distancia < self.raio_ataque_ideal:
-            # Movimento lateral circular
-            angulo = math.atan2(dy, dx) + math.pi/2
-            self.rect.x += math.cos(angulo) * self.velocidade
-            self.rect.y += math.sin(angulo) * self.velocidade
-        else:
-            # Aproximação direta
-            self.rect.x += (dx / distancia) * self.velocidade
-            self.rect.y += (dy / distancia) * self.velocidade
-
-        self.direita = dx > 0
-        self.estado = 'andando' if distancia > 50 else 'parado'
+    # Usar velocidade_x/y como no Orc Armadura
+        self.velocidade_x = (dx / distancia) * self.velocidade
+        self.velocidade_y = (dy / distancia) * self.velocidade
+    
+    # Aplicar evasão de outros inimigos
+        evitar_x, evitar_y = self.calcular_evitar_inimigos()
+        self.velocidade_x += evitar_x
+        self.velocidade_y += evitar_y
+    
+    # Normalizar velocidade
+        comprimento = math.hypot(self.velocidade_x, self.velocidade_y)
+        if comprimento > 0:
+            fator = self.velocidade / comprimento
+            self.velocidade_x *= fator
+            self.velocidade_y *= fator
 
     def atualizar_animacao(self, dt):
         agora = pygame.time.get_ticks()
         if agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
-            
+        
+        # Lógica para cada estado de animação
             if self.estado == 'morrendo':
                 self.processar_animacao_morte()
-            else:
-                self.avancar_frame_animacao()
-            
+            elif self.estado == 'dano':
+                self.processar_animacao_dano()
+            elif self.estado == 'ataque':
+                self.processar_animacao_ataque()
+            elif self.estado == 'andando':
+                self.processar_animacao_andando()
+            else:  # parado
+                self.processar_animacao_parado()
+        
             self.atualizar_frame()
 
-    # ... (mantidos os outros métodos como antes)
-
     def processar_animacao_morte(self):
-        if self.indice_animacao < len(self.animacoes['morrendo']) - 1:
-            self.indice_animacao += 1
+        if self.velocidade_x != 0 or self.velocidade_y != 0:
+            self.indice_animacao = (self.indice_animacao + 1) % len(self.animacoes['andando'])
         else:
-            self.animacao_morte_concluida = True
+            self.estado = 'parado'
+            self.indice_animacao = 0
 
     def avancar_frame_animacao(self):
         self.indice_animacao = (self.indice_animacao + 1) % len(self.animacoes[self.estado])
@@ -174,3 +218,47 @@ class BaseEsqueletoArqueiro(pygame.sprite.Sprite):
             if largura_atual > 0:  
                 pygame.draw.rect(tela, COR_HP_ATUAL, barra_rect_camera, border_radius=2)
                 pygame.draw.rect(tela, (255, 255, 255), fundo_rect_camera, width=1, border_radius=2)
+    
+    def calcular_evitar_inimigos(self):
+        evitar_x = 0
+        evitar_y = 0
+        evitar_raio = 70
+        for inimigo in self.grupo_inimigos:
+            if inimigo != self and not inimigo.esta_morto:
+                dx = inimigo.rect.centerx - self.rect.centerx
+                dy = inimigo.rect.centery - self.rect.centery
+                distancia = math.hypot(dx, dy)
+                if 0 < distancia < evitar_raio:
+                    fator = (evitar_raio - distancia) / evitar_raio
+                    direcao_x = -dx / distancia
+                    direcao_y = -dy / distancia
+                    evitar_x += direcao_x * fator * self.velocidade * 0.8
+                    evitar_y += direcao_y * fator * self.velocidade * 0.8
+        return evitar_x, evitar_y
+
+    def verificar_colisao(self, tilemap):
+    # Movimento horizontal
+        original_x = self.rect.x
+        self.rect.x += self.velocidade_x
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.velocidade_x > 0:
+                    self.rect.right = rect.left
+                else:
+                    self.rect.left = rect.right
+                break
+    
+    # Movimento vertical
+        original_y = self.rect.y
+        self.rect.y += self.velocidade_y
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.velocidade_y > 0:
+                    self.rect.bottom = rect.top
+                else:
+                    self.rect.top = rect.bottom
+                break
+    
+    # Prevenir teletransporte mantendo velocidade válida
+        self.velocidade_x = self.rect.x - original_x
+        self.velocidade_y = self.rect.y - original_y

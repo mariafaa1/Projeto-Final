@@ -6,6 +6,7 @@ from config import (
     BORDA_HP, COR_BORDA, POSICAO_BARRA_OFFSET_Y
 )
 import tilemap
+import math
 
 class InimigoBase(pygame.sprite.Sprite):
     def __init__(self, x, y, hp_max, velocidade, alvo, inimigos_group):
@@ -32,24 +33,23 @@ class InimigoBase(pygame.sprite.Sprite):
         self.xp_entregue = False
         self.velocidade_x = 0  
         self.velocidade_y = 0
-        self.raio_perseguicao = 500
+        self.raio_perseguicao = 300
         self.inimigos_group = inimigos_group
 
     def calcular_evitar_inimigos(self):
         evitar_x = 0
         evitar_y = 0
-        evitar_raio = 70  # Use a variável de configuração evitar_inimigos
+        evitar_raio = 70
         for inimigo in self.inimigos_group:
             if inimigo != self and not inimigo.esta_morto:
                 dx = inimigo.rect.centerx - self.rect.centerx
                 dy = inimigo.rect.centery - self.rect.centery
-                distancia = (dx**2 + dy**2)**0.5
+                distancia = math.hypot(dx, dy)
+            
                 if 0 < distancia < evitar_raio:
                     fator = (evitar_raio - distancia) / evitar_raio
-                    direcao_x = -dx / distancia  # Direção oposta
-                    direcao_y = -dy / distancia
-                    evitar_x += direcao_x * fator * self.velocidade * 0.8  # Ajuste o fator conforme necessário
-                    evitar_y += direcao_y * fator * self.velocidade * 0.8
+                    evitar_x += (-dx/distancia) * fator * self.velocidade * 0.8
+                    evitar_y += (-dy/distancia) * fator * self.velocidade * 0.8
         return evitar_x, evitar_y
         
 
@@ -219,39 +219,38 @@ class InimigoBase(pygame.sprite.Sprite):
                 pygame.draw.rect(tela, COR_HP_ATUAL, barra_rect_camera, border_radius=2)
                 pygame.draw.rect(tela, (255, 255, 255), fundo_rect_camera, width=1, border_radius=2)
 
+
     def verificar_colisao(self, tilemap):
-        # Colisão horizontal
+        original_x = self.rect.x
+        self.rect.x += self.velocidade_x
+        colidiu_x = False
         for rect in tilemap.collision_rects:
             if self.rect.colliderect(rect):
-                if self.velocidade_x > 0:  # Movendo para direita
+                if self.velocidade_x > 0:
                     self.rect.right = rect.left
-                elif self.velocidade_x < 0:  # Movendo para esquerda
+                else:
                     self.rect.left = rect.right
-        
-        # Colisão vertical
-        def verificar_colisao(self, tilemap):
-            original_x = self.hitbox_rect.x
-            original_y = self.hitbox_rect.y
-    
-    # Movimento horizontal
-            self.hitbox_rect.x += self.velocidade_x
-            for rect in tilemap.collision_rects:
-                if self.hitbox_rect.colliderect(rect):
-                    if self.velocidade_x > 0:
-                        self.hitbox_rect.right = rect.left
-                    else:
-                        self.hitbox_rect.left = rect.right
-                    break
+                colidiu_x = True
+                break
     
     # Movimento vertical
-            self.hitbox_rect.y += self.velocidade_y
-            for rect in tilemap.collision_rects:
-                if self.hitbox_rect.colliderect(rect):
-                    if self.velocidade_y > 0:
-                        self.hitbox_rect.bottom = rect.top
-                    else:
-                        self.hitbox_rect.top = rect.bottom
-                    break
+        original_y = self.rect.y
+        self.rect.y += self.velocidade_y
+        colidiu_y = False
+        for rect in tilemap.collision_rects:
+            if self.rect.colliderect(rect):
+                if self.velocidade_y > 0:
+                    self.rect.bottom = rect.top
+                else:
+                    self.rect.top = rect.bottom
+                colidiu_y = True
+                break
     
-    # Atualiza a posição real
-            self.rect.center = self.hitbox_rect.center
+    # Atualizar velocidades reais após colisão
+        self.velocidade_x = self.rect.x - original_x
+        self.velocidade_y = self.rect.y - original_y
+    
+    # Resetar velocidade se colidir em ambos os eixos
+        if colidiu_x and colidiu_y:
+            self.velocidade_x = 0
+            self.velocidade_y = 0

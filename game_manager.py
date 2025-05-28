@@ -8,6 +8,7 @@ from inimigos_codigos.orc_normal import OrcNormal
 from inimigos_codigos.esqueleto import Esqueleto
 from inimigos_codigos.boss1.base_boss1 import BossBase
 from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura
+from inimigos_codigos.Inimigos_mapa2.esqueleto_arqueiro import EsqueletoArqueiro
 
 class GameManager:
     def __init__(self, janela, animacoes):
@@ -115,6 +116,14 @@ class GameManager:
                     obj.y * self.tilemap.zoom,
                     self.soldado,
                     self.grupo_inimigos  # Passar o grupo de inimigos
+                ).add(self.grupo_inimigos)
+            elif obj.name == 'spawn_esqueleto_arqueiro':
+                EsqueletoArqueiro(
+                    obj.x * self.tilemap.zoom,
+                    obj.y * self.tilemap.zoom,
+                    self.soldado,
+                    self.grupo_projeteis,
+                    self.grupo_inimigos
                 ).add(self.grupo_inimigos)
 
 

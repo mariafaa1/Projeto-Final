@@ -10,15 +10,15 @@ from inimigos_codigos.base import InimigoBase
 
 class BossBase(InimigoBase):
     def __init__(self, x, y, alvo, inimigos_group):
-        super().__init__(x, y, hp_max=600, velocidade=0.7, alvo=alvo, inimigos_group=inimigos_group)
+        super().__init__(x, y, hp_max=6000, velocidade=0.7, alvo=alvo, inimigos_group=inimigos_group)
         self.image = None
         self.rect = pygame.Rect(0, 0, 0, 0)
         self.dano_ataque_fraco = 35
         self.dano_ataque_pesado = 50
         self.dano_ataque_especial = 75
         self.cooldown_ataque_fraco = 2000
-        self.cooldown_ataque_pesado = 3000
-        self.cooldown_ataque_especial = 8000
+        self.cooldown_ataque_pesado = 2000
+        self.cooldown_ataque_especial = 2000
         self.ultimo_ataque_fraco = 0
         self.ultimo_ataque_pesado = 0
         self.ultimo_ataque_especial = 0
