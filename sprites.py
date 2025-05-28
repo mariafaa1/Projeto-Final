@@ -16,28 +16,26 @@ class Soldado(pygame.sprite.Sprite):
         self.tilemap = tilemap
         self.animacoes = animacoes
         self.estado = 'parado'
+        self.estado_anterior = 'parado'  # Novo atributo para controle de animação
         self.indice_animacao = 0
         self.image = self.animacoes[self.estado][self.indice_animacao]
         self.rect = self.image.get_rect(topleft=(50, ALTURA // 2))
-        self.hitbox_rect = pygame.Rect(0, 0, 30, 50) 
+        self.hitbox_rect = pygame.Rect(0, 0, 30, 50)
         self.hitbox_rect.center = self.rect.center
-        self.dano_ataque_leve = DANO_ATAQUE_LEVE 
+        self.dano_ataque_leve = DANO_ATAQUE_LEVE
         self.dano_ataque_pesado = DANO_ATAQUE_PESADO
         self.dano_arco = DANO_ARCO
-        self.tempo_animacao = 100       
+        self.tempo_animacao = 100
         self.tempo_animacao_morte = 150
-        self.vel_x = 0 
+        self.vel_x = 0
         self.vel_y = 0
-          
+        self.direction = pygame.math.Vector2()
         
-        # ======================================================
-        # PARÂMETROS AJUSTÁVEIS - ATAQUES
-        # ======================================================
         self.ataques = {
             'ataque_leve': {
-                'frame_dano': 3,                          # Frame que aplica o dano
-                'cooldown': TEMPO_COOLDOWN_ATAQUE_LEVE,   # Tempo entre ataques
-                'hitbox': {'offset_x': 30, 'offset_y': -25, 'largura': 30, 'altura': 27}  # Posição e tamanho
+                'frame_dano': 3,
+                'cooldown': TEMPO_COOLDOWN_ATAQUE_LEVE,
+                'hitbox': {'offset_x': 30, 'offset_y': -25, 'largura': 30, 'altura': 27}
             },
             'ataque_pesado': {
                 'frame_dano': 4,
@@ -45,9 +43,9 @@ class Soldado(pygame.sprite.Sprite):
                 'hitbox': {'offset_x': 40, 'offset_y': -30, 'largura': 40, 'altura': 30}
             },
             'ataque_arco': {
-                'frame_dano': len(animacoes['ataque_arco']) - 2,  # Penúltimo frame (automatico)
+                'frame_dano': len(animacoes['ataque_arco']) - 2,
                 'cooldown': TEMPO_COOLDOWN_ARCO,
-                'deslocamento_flecha_y': 5  # Ajuste vertical do ponto de disparo
+                'deslocamento_flecha_y': 5
             }
         }
 
@@ -69,31 +67,23 @@ class Soldado(pygame.sprite.Sprite):
         self.grupo_inimigos = grupo_inimigos
         self.indice_dano = 0
         self.ultimo_update_dano = 0
-        # ======================================================
-        # NOVOS ATRIBUTOS PARA HUD/XP (ADICIONADOS)
-        # ======================================================
         self.xp = 0
         self.nivel = 1
         self.xp_para_prox_nivel = 100
-        self.cor_xp = (0, 150, 200)    # Azul
-        self.cor_nivel = (255, 215, 0) # Dourado
+        self.cor_xp = (0, 150, 200)
+        self.cor_nivel = (255, 215, 0)
 
-    def update(self, teclas):
+    def update(self, teclas, dt):
         agora = pygame.time.get_ticks()
     
         if self.esta_morto:
             self.processar_morte(agora)
             return
 
-    # Processa movimentos SEM aplicar diretamente às coordenadas
-        self.processar_movimento_ataque(teclas, agora)
+        self.processar_movimento_ataque(teclas, agora, dt)
         self.verificar_colisao()
-
-    
-    # Restante da lógica...
         self.processar_dano(agora)
         self.processar_animacoes(agora, teclas)
-
 
     def processar_morte(self, agora):
         if not self.animacao_morte_ativa:
@@ -116,45 +106,39 @@ class Soldado(pygame.sprite.Sprite):
             frame = pygame.transform.flip(frame, True, False)
         self.image = frame
 
-    def processar_movimento_ataque(self, teclas, agora):
-        self.vel_x = 0  # Resetar velocidades
-        self.vel_y = 0  # Resetar velocidades
-        movimento = False
+    def processar_movimento_ataque(self, teclas, agora, dt):
+        self.direction.x = 0
+        self.direction.y = 0
         novo_estado = 'parado'
         
-        # Controles de movimento (atualizado para usar velocidades)
         if teclas[pygame.K_a]:
-            self.vel_x = -VELOCIDADE_JOGADOR
-            novo_estado = 'andando'
+            self.direction.x = -1
             self.virado_para_esquerda = True
-            movimento = True
         if teclas[pygame.K_d]:
-            self.vel_x = VELOCIDADE_JOGADOR
-            novo_estado = 'andando'
+            self.direction.x = 1
             self.virado_para_esquerda = False
-            movimento = True
         if teclas[pygame.K_w]:
-            self.vel_y = -VELOCIDADE_JOGADOR
-            novo_estado = 'andando'
-            movimento = True
+            self.direction.y = -1
         if teclas[pygame.K_s]:
-            self.vel_y = VELOCIDADE_JOGADOR
+            self.direction.y = 1
+
+        if self.direction.magnitude() > 0:
             novo_estado = 'andando'
-            movimento = True
+            self.direction = self.direction.normalize()
+
+        self.vel_x = self.direction.x * VELOCIDADE_JOGADOR * dt
+        self.vel_y = self.direction.y * VELOCIDADE_JOGADOR * dt
 
         if not self.executando_ataque:
             self.estado = novo_estado
 
-        # Controle de ataques
         if not self.executando_ataque:
             if teclas[pygame.K_k] and (agora - self.ultimo_ataque_pesado > self.ataques['ataque_pesado']['cooldown']):
                 self.iniciar_ataque('ataque_pesado', agora)
                 self.ultimo_ataque_pesado = agora
-                
             elif teclas[pygame.K_j] and (agora - self.ultimo_ataque_leve > self.ataques['ataque_leve']['cooldown']):
                 self.iniciar_ataque('ataque_leve', agora)
                 self.ultimo_ataque_leve = agora
-                
             elif teclas[pygame.K_l] and (agora - self.ultimo_ataque_arco > self.ataques['ataque_arco']['cooldown']):
                 self.iniciar_ataque('ataque_arco', agora)
                 self.ultimo_ataque_arco = agora
@@ -180,27 +164,23 @@ class Soldado(pygame.sprite.Sprite):
                     self.indice_dano = 0
 
     def processar_animacoes(self, agora, teclas):
-        # Atualização normal da animação
+        if self.estado != self.estado_anterior:
+            self.indice_animacao = 0
+            self.estado_anterior = self.estado
+
         if not self.executando_ataque and agora - self.ultimo_update > self.tempo_animacao:
             self.ultimo_update = agora
             if self.estado in self.animacoes:
                 self.indice_animacao = (self.indice_animacao + 1) % len(self.animacoes[self.estado])
 
-        # Processamento especial para ataques
         if self.executando_ataque:
             self.processar_animacao_ataque(agora, teclas)
 
-        # Seleção do frame
         if self.animacao_dano_ativa:
             frame_index = min(self.indice_dano, len(self.animacoes['dano'])-1)
             frame = self.animacoes['dano'][frame_index]
         else:
-            if self.estado in self.animacoes:
-                frame_list = self.animacoes[self.estado]
-                frame_index = min(self.indice_animacao, len(frame_list)-1)
-                frame = frame_list[frame_index]
-            else:
-                frame = self.image
+            frame = self.animacoes[self.estado][self.indice_animacao]
 
         if self.virado_para_esquerda:
             frame = pygame.transform.flip(frame, True, False)

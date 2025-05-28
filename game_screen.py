@@ -86,7 +86,6 @@ def tela_jogo(janela, animacoes_soldado, tilemap):
 
     soldado = Soldado(animacoes_soldado, grupo_inimigos, grupo_projeteis, tilemap)
 
-    mapa_largura, mapa_altura = tilemap.map_size
     camera = Camera(largura_janela, altura_janela)
     mapa_largura, mapa_altura = tilemap.map_size
     camera.configurar_limites(mapa_largura, mapa_altura)
@@ -94,7 +93,7 @@ def tela_jogo(janela, animacoes_soldado, tilemap):
     processar_spawns(tilemap, soldado, grupo_inimigos, grupo_projeteis)
 
     while estado == JOGANDO:
-        clock.tick(FPS)
+        dt = clock.tick(FPS) / 1000  # Calcula delta time
 
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
@@ -102,7 +101,7 @@ def tela_jogo(janela, animacoes_soldado, tilemap):
 
         teclas = pygame.key.get_pressed()
         
-        soldado.update(teclas)
+        soldado.update(teclas, dt)  # Passando delta time
         grupo_inimigos.update(pygame.time.get_ticks())
         grupo_projeteis.update(tilemap)
         soldado.verificar_colisao()

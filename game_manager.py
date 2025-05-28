@@ -7,6 +7,7 @@ from tilemap import TileMap
 from inimigos_codigos.orc_normal import OrcNormal
 from inimigos_codigos.esqueleto import Esqueleto
 from inimigos_codigos.boss1.base_boss1 import BossBase
+from inimigos_codigos.Inimigos_mapa2.orc_armadura import OrcArmadura
 
 class GameManager:
     def __init__(self, janela, animacoes):
@@ -108,15 +109,22 @@ class GameManager:
                     self.soldado,
                     self.grupo_inimigos
                 ).add(self.grupo_inimigos)
+            elif obj.name == 'spawn_orc_armadura':
+                OrcArmadura(
+                    obj.x * self.tilemap.zoom,
+                    obj.y * self.tilemap.zoom,
+                    self.soldado
+                ).add(self.grupo_inimigos)
+
 
     def loop_jogo(self):
         while self.estado == JOGANDO:
-            self.clock.tick(FPS)
+            dt = self.clock.tick(FPS) / 1000  # Delta time em segundos
         
-            if self.processar_eventos() == False:  # Exemplo: retorna False se QUIT
+            if self.processar_eventos() == False:
                 return GAME_OVER
             
-            self.atualizar_entidades()
+            self.atualizar_entidades(dt)  # Passando delta time
             self.verificar_colisoes()
             self.atualizar_camera()
             self.desenhar()
@@ -130,16 +138,11 @@ class GameManager:
                 return False
         return True  # ← Padrão para continuar execução
 
-    def atualizar_entidades(self):
-
+    def atualizar_entidades(self, dt):  # Adicionado parâmetro dt
         teclas = pygame.key.get_pressed()
-        self.soldado.update(teclas)
+        self.soldado.update(teclas, dt)  # Passando delta time
         self.soldado.verificar_colisao()
     
-    # Segundo: verificar colisões
-        self.soldado.verificar_colisao()  # Adicionar esta linha
-    
-    # Terceiro: atualizar outras entidades
         self.grupo_inimigos.update(pygame.time.get_ticks())
         self.grupo_projeteis.update(self.tilemap)
 
